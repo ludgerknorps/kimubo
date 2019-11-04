@@ -1,350 +1,6 @@
 
 #include "kimubo.h"
 	
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	/* 
-	 * Abschnitt StateMachine Main (smMain)
-	 */
-	 
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 1. state and transition callback functions
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 2. states
-		extern State smMain_state_init(NULL, NULL, NULL);
-		extern State smMain_state_idle(NULL, NULL, NULL);
-		extern State smMain_state_playwav(NULL, NULL, NULL);
-		//extern State smMain_state_walkietalkie(NULL, NULL, NULL);
-		extern State smMain_state_status(NULL, NULL, NULL);
-		extern State smMain_state_setsleeper(NULL, NULL, NULL);
-		extern State smMain_state_sleeping(NULL, NULL, NULL);
-		extern State smMain_state_fatalerror(NULL, NULL, NULL);
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 3. some global variables of the state machine
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 4. events (values don't matter, need to be unique each within this statemachine, though)
-		static const byte smMain_event_init_completed 						= 1;
-		static const byte smMain_event_activate_wavplayer 					= 2;
-		//static const byte smMain_event_activate_walkietalkie				= 3;
-		static const byte smMain_event_activate_status						= 4;
-		static const byte smMain_event_activate_setsleeper 					= 5;
-		static const byte smMain_event_return_to_idle						= 6;
-		static const byte smMain_event_return_to_wavplayer					= 7;
-		//static const byte smMain_event_return_to_walkietalkie				= 8;
-		static const byte smMain_event_goto_sleep 							= 9;
-		static const byte smMain_event_fatalerror_detected					= 10;
-	 
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 5. The state machine itself with its inital state
-		extern Fsm smMain( &smMain_state_init );
-	
-	
-	
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	/* 
-	 * Abschnitt StateMachine Player (smWavPlayer)
-	 */
-	 
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 1. state and transition callback functions
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 2. states
-		State smWavPlayer_state_init(NULL, NULL, NULL);
-		State smWavPlayer_state_off(NULL, NULL, NULL);
-		State smWavPlayer_state_stopped(NULL, NULL, NULL);
-		State smWavPlayer_state_playing(NULL, NULL, NULL);
-		State smWavPlayer_state_pausing(NULL, NULL, NULL);
-		State smWavPlayer_state_resume_playing(NULL, NULL, NULL);
-		State smWavPlayer_state_skipping(NULL, NULL, NULL);
-		State smWavPlayer_state_skipping_back(NULL, NULL, NULL);
-		State smWavPlayer_state_fastforwarding(NULL, NULL, NULL);
-		State smWavPlayer_state_rewinding(NULL, NULL, NULL);
-		State smWavPlayer_state_interrupted(NULL, NULL, NULL);
-		State smWavPlayer_state_waverror(NULL, NULL, NULL);
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 3. some global variables of the state machine
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 4. events (values don't matter, need to be unique each within this statemachine, though)
-		static const byte smWavPlayer_event_init_completed 				= 1;
-		static const byte smWavPlayer_event_activate		 			= 2;
-		static const byte smWavPlayer_event_deactivate					= 3;
-		static const byte smWavPlayer_event_play						= 4;
-		static const byte smWavPlayer_event_pause				 		= 5;
-		static const byte smWavPlayer_event_resume						= 6;
-		static const byte smWavPlayer_event_goto_next_track				= 7;
-		static const byte smWavPlayer_event_goto_previous_track			= 8;
-		static const byte smWavPlayer_event_fastforward					= 9;
-		static const byte smWavPlayer_event_rewind	 					= 10;
-		static const byte smWavPlayer_event_cancle_current_action		= 11;
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 5. The state machine itself with its inital state
-		Fsm smWavPlayer( &smWavPlayer_state_init );
- 
- 
-	
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	/* 
-	 * Abschnitt StateMachine Amplifier (smAmplifier)
-	 */
-	 
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 1. state and transition callback functions
-	
-		void smAmplifier_state_init_onEnter();
-		void smAmplifier_state_suspended_onEnter();
-		void smAmplifier_state_on_onEnter();
-		void smAmplifier_state_muted_onEnter();
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 2. states
-		State smAmplifier_state_init(&smAmplifier_state_init_onEnter, NULL, NULL);
-		State smAmplifier_state_on(&smAmplifier_state_on_onEnter, NULL, NULL);
-		State smAmplifier_state_muted(&smAmplifier_state_muted_onEnter, NULL, NULL);
-		State smAmplifier_state_suspended(&smAmplifier_state_suspended_onEnter, NULL, NULL);
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 3. some global variables of the state machine
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 4. events (values don't matter, need to be unique each within this statemachine, though)
-		static const byte smAmplifier_event_init_completed 				= 1;
-		static const byte smAmplifier_event_activate		 			= 2;
-		static const byte smAmplifier_event_mute						= 3;
-		static const byte smAmplifier_event_suspend						= 4;
-	
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 5. The state machine itself with its inital state
-		Fsm smAmplifier( &smAmplifier_state_init );
- 
- 
-	
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	/* 
-	 * Abschnitt StateMachine SDCard FET (smSdcFet)
-	 */
-	 
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 1. state and transition callback functions
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 2. states
-		State smSdcFet_state_init(NULL, NULL, NULL);
-		State smSdcFet_state_on(NULL, NULL, NULL);
-		State smSdcFet_state_suspended(NULL, NULL, NULL);
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 3. some global variables of the state machine
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 4. events (values don't matter, need to be unique each within this statemachine, though)
-		static const byte smSdcFet_event_init_completed 				= 1;
-		static const byte smSdcFet_event_activate		 				= 2;
-		static const byte smSdcFet_event_suspend						= 3;
-	
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 5. The state machine itself with its inital state
-		Fsm smSdcFet( &smSdcFet_state_init );
- 
- 
-	
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	/* 
-	 * Abschnitt StateMachine Volume Poti (smVolPot)
-	 */
-	 
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 1. state and transition callback functions
-	
-		/* =========================================================== */
-		void smVolPot_state_init_onEnter();
-		void smVolPot_state_zero_onEnter();
-		void smVolPot_state_nonzero_onEnter();
-		void smVolPot_state_zero_onState();
-		void smVolPot_state_nonzero_onState();
-
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 2. states
-		State smVolPot_state_init(&smVolPot_state_init_onEnter, NULL, NULL);
-		State smVolPot_state_zero(&smVolPot_state_zero_onEnter, &smVolPot_state_zero_onState, NULL);
-		State smVolPot_state_nonzero(&smVolPot_state_nonzero_onEnter, &smVolPot_state_nonzero_onState, NULL);
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 3. some global variables of the state machine
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 4. events (values don't matter, need to be unique each within this statemachine, though)
-		static const byte smVolPot_event_init_completed 				= 1;
-		static const byte smVolPot_event_is_zero		 				= 2;
-		static const byte smVolPot_event_is_not_zero					= 3;
-		
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 5. The state machine itself with its inital state
-		Fsm smVolPot( &smVolPot_state_init );
- 
- 
-	
-	
- 
-	
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	/* 
-	 * Abschnitt StateMachine Status messages (smStatus)
-	 */
-	 
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 1. state and transition callback functions
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 2. states
-		State smStatus_state_init(NULL, NULL, NULL);
-		State smStatus_state_idle(NULL, NULL, NULL);
-		State smStatus_state_reporting_status(NULL, NULL, NULL);
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 3. some global variables of the state machine
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 4. events (values don't matter, need to be unique each within this statemachine, though)
-		static const byte smStatus_event_init_completed 				= 1;
-		static const byte smStatus_event_report_status	 				= 2;
-		static const byte smStatus_event_cancel_statusreport			= 3;
-	
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 5. The state machine itself with its inital state
-		Fsm smStatus( &smStatus_state_init );
- 
- 
-	
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	/* 
-	 * Abschnitt StateMachine SleepTimer (smSleepTimer)
-	 */
-	 
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 1. state and transition callback functions
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 2. states
-		State smSleepTimer_state_init(NULL, NULL, NULL);
-		State smSleepTimer_state_idle(NULL, NULL, NULL);
-		State smSleepTimer_state_timer1_active(NULL, NULL, NULL);
-		State smSleepTimer_state_timer2_active(NULL, NULL, NULL);
-		State smSleepTimer_state_sleeping(NULL, NULL, NULL);
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 3. some global variables of the state machine
-	
-		static const long SLEEP_INTERVAL1 = 600000	;		// milliseconds between two UBat measurements
-															// default is 600,000 aka 10 minutes.
-		
-		static const long SLEEP_INTERVAL2 = 1800000	;		// milliseconds between two UBat measurements
-															// default is 1,800,000 aka 30 minutes.
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 4. events (values don't matter, need to be unique each within this statemachine, though)
-		static const byte smSleepTimer_event_init_completed 			= 1;
-		static const byte smSleepTimer_event_setsleeper_key_pressed		= 2;
-		static const byte smSleepTimer_event_goto_sleep		 			= 3;
-	
-	
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 5. The state machine itself with its inital state
-		Fsm smSleepTimer( &smSleepTimer_state_init );
-	
 	
 	
 // ####################################################################################
@@ -359,28 +15,37 @@
 /* 
  * Abschnitt MatrixKeyboard
  */
-
+ 
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// 0. a semi-statemachine for the keys
+	
+		static bool keybIsMoreThanOneKeyPressed = false; // true, if more than one key is pressed - we don't want multikey right now!
+		static char keybPressedKey = ''; 	// is set to a key that is pressed alone. Used to act only at release of this key, not on pressing it. Also used for acting on hold of key.
+		static char keybHeldKey = ''; 		//used to remember which key was held (to act on its release)
+		
 
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 1. Definition KeyScanCodes
-		static const byte KEYSCAN_1      = 	1	;	 
-		static const byte KEYSCAN_2      = 	2	;	
-		static const byte KEYSCAN_3      = 	3	;	 
-		static const byte KEYSCAN_4      = 	4	;	 
-		static const byte KEYSCAN_5      = 	5	;	 
-		static const byte KEYSCAN_6      = 	6	;	
-		static const byte KEYSCAN_7      = 	7	;	 
-		static const byte KEYSCAN_8      = 	8	;	 
-		static const byte KEYSCAN_9      = 	9	;	 
-		static const byte KEYSCAN_FFWD   = 	10	;	 // FastForwar / Skip
-		static const byte KEYSCAN_REW    = 	11	;	 // Rewind / Skipback
-		static const byte KEYSCAN_STAT   = 	12	;	 // Status (output via speech)
-		static const byte KEYSCAN_SLEEP  = 	13	;	 // Sleep-Timer-Set
-		static const byte KEYSCAN_LOUD   = 	14	;	 // Parental switch for Volume-Preset: Loud or whisper
-		static const byte KEYSCAN_PTT    = 	15	;	 // PushToTalk (for walkie talkie)
-		static const byte KEYSCAN_B      = 	16	;	 // reserved for future use
+		static const char KEYSCAN_1      = 	'1'	;	 
+		static const char KEYSCAN_2      = 	'2'	;	
+		static const char KEYSCAN_3      = 	'3'	;	 
+		static const char KEYSCAN_4      = 	'4'	;	 
+		static const char KEYSCAN_5      = 	'5'	;	 
+		static const char KEYSCAN_6      = 	'6'	;	
+		static const char KEYSCAN_7      = 	'7'	;	 
+		static const char KEYSCAN_8      = 	'8'	;	 
+		static const char KEYSCAN_9      = 	'9'	;	 
+		static const char KEYSCAN_FFWD   = 	'F'	;	 // FastForwar / Skip
+		static const char KEYSCAN_REW    = 	'R'	;	 // Rewind / Skipback
+		static const char KEYSCAN_STAT   = 	'Z'	;	 // Status (output via speech)
+		static const char KEYSCAN_SLEEP  = 	'S'	;	 // Sleep-Timer-Set
+		static const char KEYSCAN_LOUD   = 	'L'	;	 // Parental switch for Volume-Preset: Loud or whisper
+		static const char KEYSCAN_PTT    = 	'A'	;	 // PushToTalk (for walkie talkie)
+		static const char KEYSCAN_B      = 	'B'	;	 // reserved for future use
 					
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -395,8 +60,16 @@
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 3. Which pin has which matrix-keyboard-row/-column?
-			
-		/* s. HeaderFile */ 
+		
+		// pins are Arduino pin nr.	
+		static const byte KEYB_PIN_COLUMN1 	= 8;
+		static const byte KEYB_PIN_COLUMN2 	= 7;
+		static const byte KEYB_PIN_COLUMN3 	= 6;
+		static const byte KEYB_PIN_COLUMN4 	= 5;
+		static const byte KEYB_PIN_ROW1 	= A3;	 // used as digital pin
+		static const byte KEYB_PIN_ROW2 	= A2;    // used as digital pin
+		static const byte KEYB_PIN_ROW3 	= A1;    // used as digital pin
+		static const byte KEYB_PIN_ROW4 	= A0;    // used as digital pin
 		
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -424,23 +97,120 @@
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 5. damit µC zwischendurch in Powerdown gehen kann, müssen alle Keyboard-Inputs (=Reihen, s.o.) mit je einer Diode an diesen Interrupt-Pin angeschlossen sein; dieser weckt dann den µC auf)
-    		
-		/* s. HeaderFile */
-        
-        
+		static const byte KEYB_PIN_INTERRUPT = 2;
+		
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 6. Die TastaturBelegung selbst = welche Taste ist wo?
 			
-		/* s. HeaderFile */
-
+		static const char KEYB_keyScans[KEYB_ROWS][KEYB_COLS] = {
+			{	KEYSCAN_1,		KEYSCAN_2,		KEYSCAN_3,	  	KEYSCAN_STAT	},
+			{	KEYSCAN_4,		KEYSCAN_5,		KEYSCAN_6,	    KEYSCAN_SLEEP	},
+			{	KEYSCAN_7,		KEYSCAN_8,		KEYSCAN_9,	    KEYSCAN_LOUD	},
+			{	KEYSCAN_FFWD,	KEYSCAN_REW,  	KEYSCAN_PTT,  	KEYSCAN_B		}
+		};
+	
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// 7. keypad settings
+		
+		//Set the amount of milliseconds the user will have to hold a button until the HOLD state is triggered. (default = 500)
+		#define KEYB_HOLD_TIME 	500 
+		//Set the amount of milliseconds the keypad will wait until it accepts a new keypress/keyEvent. This is the "time delay" debounce method.  (default = 10)
+		#define KEYB_DEBOUNCE_TIME 	10 	
 		  
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// 7. the keypad/keyboard itself		
-		Keypad matrixKeyboard;
+	// 8. the keypad/keyboard itself		
+		Keypad keypad; // defined in setup()
+	
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
+	// 9. the eventListener callback function for different types of keys
+	
+		void keypadEvent(KeypadEvent key){
+			// if more than one key is pressed, then
+			// don't do anything with pressed keys
+			// don't react on released keys
+			
+			// even better way: redefine LIST_MAX to be 1
+			// then only one key can be added to keys-list. :-)
+			
+			if ( keypad.numKeys() > 1 ) {
+				switch (keypad.getState()){
+					case PRESSED:
+						if ( (key >= '1' && key <='9') || key <='F' || key <='R' ) {
+							keybPressedKey = key;
+						}
+						break;
+
+					case RELEASED:
+						if (key >= '1' && key <='9') {
+							if (key == keybPressedKey) {
+								keybPressedKey = '';
+								if (key != keybHeldKey) {
+									// play playlist nr. <key> from beginning
+								} else {
+									keybHeldKey = '';
+									// play playlist nr. <key> from stored position (from EEPROM)
+								}
+							} else {
+								// this should never happen because of keybIsMoreThanOneKeyPressed!
+							}
+						} else if (key=='F') {
+							if (key == keybPressedKey) {
+								keybPressedKey = '';
+								if (key != keybHeldKey) {
+									// skip to next track in playlist
+								} else {
+									keybHeldKey = '';
+									// we were seeking, thus we don't do anything at release
+								}
+							} else {
+								// this should never happen because of keybIsMoreThanOneKeyPressed!
+							}
+						} else if (key=='B') {
+							if (key == keybPressedKey) {
+								keybPressedKey = '';
+								if (key != keybHeldKey) {
+									// skip to previous track in playlist
+								} else {
+									keybHeldKey = '';
+									// we were backseeking, thus we don't do anything at release
+								}
+							} else {
+								// this should never happen because of keybIsMoreThanOneKeyPressed!
+							}
+						}
+						break;
+
+					case HOLD:
+						if ( key >= '1' && key <='9') {
+							keybHeldKey = key;
+						} else if ( key <='F' ) {
+							keybHeldKey = key;
+							// seeking while button is held
+							
+						} else if ( key <='R') {
+							keybHeldKey = key;
+							// seeking back while button is held
+							
+						}
+						break;
+				} // switch
+			} else {
+				keybPressedKey = ''; // if several keys are pressed together, don't do anything, thus forget pressed/held keys
+				keybHeldKey = '';
+			}
+		} // keypadEvent
+		
+
+		
+		
 
 
 // ####################################################################################
@@ -514,388 +284,7 @@
 			ADMUX = uBat_OldADMUX;	
 		} // readVcc()
 
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-/* 
- * Abschnitt MAIN
- */
 
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-		
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		bool smMain_init_stateMachine(){
-			// initialize the whole statemachine, add transitions and so on...
-			// transition init to idle
-			smMain.add_transition(	&smMain_state_init, 
-									&smMain_state_idle, 
-									smMain_event_init_completed, 
-									NULL);
-			
-			// transitions idle to player (for wav/pcm)
-		    smMain.add_transition(	&smMain_state_idle,  
-									&smMain_state_playwav,  
-									smMain_event_activate_wavplayer,  
-									NULL);
-		    // transitions player to idle 
-		    smMain.add_transition(	&smMain_state_playwav,  
-									&smMain_state_idle,  
-									smMain_event_return_to_idle,  
-									NULL);
-		    
-		    // transitions idle to walkietalkie
-		    //smMain.add_transition(	&smMain_state_idle,  
-			//						&smMain_state_walkietalkie,  
-			//						smMain_event_activate_walkietalkie,  
-			//						NULL);
-		    // transitions walkietalkie to idle 
-		    //smMain.add_transition(	&smMain_state_walkietalkie,  
-			//						&smMain_state_idle,  
-			//						smMain_event_return_to_idle,  
-			//						NULL);
-		    
-		    // transitions idle to setsleeper
-		    smMain.add_transition(	&smMain_state_idle,  
-									&smMain_state_setsleeper,  
-									smMain_event_activate_setsleeper,  
-									NULL);
-		    // transitions setsleeper to idle 
-		    smMain.add_transition(	&smMain_state_setsleeper,  
-									&smMain_state_idle,  
-									smMain_event_return_to_idle,  
-									NULL);
-		    
-		    // transitions idle to sleeping
-		    smMain.add_transition(	&smMain_state_idle,  
-									&smMain_state_sleeping,  
-									smMain_event_goto_sleep,  
-									NULL);
-		    // transitions sleeping to idle 
-		    smMain.add_transition(	&smMain_state_sleeping,  
-									&smMain_state_idle,  
-									smMain_event_return_to_idle,  
-									NULL);
-		    
-		    // transitions idle to status 
-		    smMain.add_transition(	&smMain_state_idle,  
-									&smMain_state_status,  
-									smMain_event_activate_status,  
-									NULL);
-		    // transitions status to idle 
-		    smMain.add_transition(	&smMain_state_status,  
-									&smMain_state_idle,  
-									smMain_event_return_to_idle,  
-									NULL);
-		    
-		    // transitions wavplayer to setsleeper
-		    smMain.add_transition(	&smMain_state_playwav,  
-									&smMain_state_setsleeper,  
-									smMain_event_activate_setsleeper,  
-									NULL);
-		    // transitions setsleeper to wavplayer 
-		    smMain.add_transition(	&smMain_state_setsleeper,  
-									&smMain_state_playwav,  
-									smMain_event_return_to_playwav,  
-									NULL);
-		    
-		    // transitions wavplayer to status 
-		    smMain.add_transition(	&smMain_state_playwav,  
-									&smMain_state_status,  
-									smMain_event_activate_status,  
-									NULL);
-		    // transitions status to wavplayer 
-		    smMain.add_transition(	&smMain_state_status,  
-									&smMain_state_playwav,  
-									smMain_event_return_to_playwav,  
-									NULL);
-		    
-		    // transitions wavplayer to sleeping 
-		    smMain.add_transition(	&smMain_state_playwav,  
-									&smMain_state_sleeping,  
-									smMain_event_goto_sleep,  
-									NULL);
-		    // transitions sleeping to wavplayer 
-		    smMain.add_transition(	&smMain_state_sleeping,  
-									&smMain_state_playwav,  
-									smMain_event_return_to_playwav,  
-									NULL);
-		    
-		    // transitions sleeping to status 
-		    smMain.add_transition(	&smMain_state_sleeping,  
-									&smMain_state_status,  
-									smMain_event_activate_status,  
-									NULL);
-		    // transitions status to sleeping 
-		    smMain.add_transition(	&smMain_state_status,  
-									&smMain_state_sleeping,  
-									smMain_event_goto_sleep,  
-									NULL);
-		    
-		    // all is setup, now initialize the stateMachine.
-		    smMain.init();
-		    
-		    return true; // default for now, maybe we add a more elaborate failure-management later...
-		}
-
-
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-/* 
- * Abschnitt SLEEP
- */
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// setsleeper / sleeptimer
-		
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		bool smSleepTimer_init_stateMachine(){
-			// initialize the whole statemachine, add transitions and so on...
-			// transition init to idle
-			smSleepTimer.add_transition(&smSleepTimer_state_init,  
-										&smSleepTimer_state_idle,   
-										smSleepTimer_event_init_completed,   
-										NULL);
-			
-			// transitions idle to active1
-		    smSleepTimer.add_transition(&smSleepTimer_state_idle,   
-										&smSleepTimer_state_timer1_active,   
-										smSleepTimer_event_setsleeper_key_pressed,   
-										NULL);
-			// transitions active1 to active2
-		    smSleepTimer.add_transition(&smSleepTimer_state_timer1_active,   
-										&smSleepTimer_state_timer2_active,   
-										smSleepTimer_event_setsleeper_key_pressed,   
-										NULL);
-		    // transitions active2 to idle
-		    smSleepTimer.add_transition(&smSleepTimer_state_timer2_active,   
-										&smSleepTimer_state_idle,   
-										smSleepTimer_event_setsleeper_key_pressed,   
-										NULL);
-		    
-		    // transitions active1 to sleeping
-		    smSleepTimer.add_timed_transition(	&smSleepTimer_state_timer1_active,   
-												&smSleepTimer_state_sleeping,   
-												SLEEP_INTERVAL1,   
-												NULL);
-		    // transitions active2 to sleeping
-		    smSleepTimer.add_timed_transition(	&smSleepTimer_state_timer2_active,   
-												&smSleepTimer_state_sleeping,   
-												SLEEP_INTERVAL2,   
-												NULL);
-		    
-		    // transitions sleeping to idle
-		    smSleepTimer.add_transition(&smSleepTimer_state_sleeping,   
-										&smSleepTimer_state_idle,   
-										smSleepTimer_event_reset,   
-										NULL);
-		    
-		    // all is setup, now initialize the stateMachine.
-		    smSleepTimer.init();
-		    
-		    return true; // default for now, maybe we add a more elaborate failure-management later...
-		}
-
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-/* 
- * Abschnitt AMP(lifier)
- */
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// smAmplifier
-	
-		/* =========================================================== */
-		void amplifier_suspend();{ 		digitalWrite(AMP_PIN_SUSPEND, LOW); 	}
-		
-		/* =========================================================== */
-		void amplifier_unsuspend();{ 	digitalWrite(AMP_PIN_SUSPEND, HIGH); 	}
-		
-		/* =========================================================== */
-		void amplifier_mute();{ 		digitalWrite(AMP_PIN_MUTE, LOW);  		}
-		
-		/* =========================================================== */
-		void amplifier_unmute();{ 		digitalWrite(AMP_PIN_MUTE, HIGH);  		}
-	
-		/* =========================================================== */
-		void smAmplifier_state_init_onEnter(){
-			pinMode(AMP_PIN_SUSPEND,OUTPUT);
-			amplifier_suspend();
-			pinMode(AMP_PIN_MUTE,OUTPUT);
-			amplifier_mute()
-			pinMode(AMP_PIN_VOL_FEEDBACK,INPUT);
-		}
-	
-		/* =========================================================== */
-		void smAmplifier_state_suspended_onEnter(){
-			amplifier_mute(); // no popping, please...
-			amplifier_suspend(); 
-		} // smAmplifier_state_suspended_onEnter()
-		
-		/* =========================================================== */
-		void smAmplifier_state_on_onEnter(){
-			amplifier_unsuspend();
-			amplifier_unmute();
-		} // smAmplifier_state_on_onEnter()
-		
-		/* =========================================================== */
-		void smAmplifier_state_muted_onEnter(){
-			amplifier_mute();
-		} // smAmplifier_state_muted_onEnter()
-		
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		bool smAmplifier_init_stateMachine(){
-			// initialize the whole statemachine, add transitions and so on...
-			// transition init to suspended
-			smAmplifier.add_transition(	&smAmplifier_state_init,  
-										&smAmplifier_state_suspended,   
-										smAmplifier_event_init_completed,   
-										NULL);
-			// transition suspended to on
-			smAmplifier.add_transition(	&smAmplifier_state_suspended,  
-										&smAmplifier_state_on,   
-										smAmplifier_event_activate,   
-										NULL);
-			// transition on to muted
-			smAmplifier.add_transition(	&smAmplifier_state_on,  
-										&smAmplifier_state_muted,   
-										smAmplifier_event_mute,   
-										NULL);
-			// transition muted to on
-			smAmplifier.add_transition(	&smAmplifier_state_muted,  
-										&smAmplifier_state_on,   
-										smAmplifier_event_activate,   
-										NULL);
-										
-			// all is setup, now initialize the stateMachine.
-		    smAmplifier.init();
-		    
-		    return true; // default for now, maybe we add a more elaborate failure-management later...
-		} // smAmplifier_init_stateMachine
-		
-
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-/* 
- * Abschnitt VolumePoti
- */
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// smVolPot
-	
-	
-		void smVolPot_measure
-	
-	
-		/* =========================================================== */
-		void smVolPot_state_init_onEnter(){
-		
-		}
-	
-		/* =========================================================== */
-		void smVolPot_state_zero_onEnter(){
-			// pause playing if any
-			smWavPlayer.trigger(smWavPlayer_event_pause);
-		}
-		
-		/* =========================================================== */
-		void smVolPot_state_nonzero_onEnter(){
-			// resume playing if any
-			smWavPlayer.trigger(smWavPlayer_event_resume);
-		} 
-		
-		/* =========================================================== */
-		void smVolPot_state_zero_onState(){
-			int sensorValue = analogRead(sensorPin);
-			if ( sensorValue > VOLPOT_MINIMUM_LEVEL_UPPER ) {	smVolPot.trigger(smVolPot_event_is_not_zero);		}
-		}
-		/* =========================================================== */
-		void smVolPot_state_nonzero_onState(){
-			sensorValue = analogRead(sensorPin);
-			if ( sensorValue <= VOLPOT_MINIMUM_LEVEL_LOWER ) {	smVolPot.trigger(smVolPot_event_is_zero);		}
-		}
-
-		
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		bool smVolPot_init_stateMachine(){
-			// initialize the whole statemachine, add transitions and so on...
-
-			smVolPot.add_transition(	&smVolPot_state_init,  
-										&smVolPot_state_nonzero,   
-										smVolPot_event_init_completed,   
-										NULL);
-
-			smVolPot.add_transition(	&smVolPot_state_nonzero,  
-										&smVolPot_state_zero,   
-										smVolPot_event_is_zero,   
-										NULL);
-
-			smVolPot.add_transition(	&smVolPot_state_zero,  
-										&smVolPot_state_nonzero,   
-										smVolPot_event_is_not_zero,   
-										NULL);
-
-										
-			// all is setup, now initialize the stateMachine.
-		    smVolPot.init();
-		    
-		    return true; // default for now, maybe we add a more elaborate failure-management later...
-		} // smVolPot_init_stateMachine
-		
-
-
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-/* 
- * Abschnitt HelferFunktionen
- */
 
 
  
@@ -914,15 +303,12 @@
 	
 	void setup() {
 	
-		// flag for failure management: if something goes wrong, this is set to FALSE. Defaults to TRUE.
-		bool allIsWell = true;
-	
-		// setup all stateMachines
-		allIsWell &= smUBat_init_stateMachine();
-		allIsWell &= smMain_init_stateMachine();
-		allIsWell &= smSleepTimer_init_stateMachine();
-		allIsWell &= smAmplifier_init_stateMachine();
-		allIsWell &= smVolPot_init_stateMachine();
+		// Setup of Keypad/keyboard
+		Keypad keypad = Keypad( makeKeymap(KEYB_keyScans), KEYB_RowPins, KEYB_ColPins, KEYB_ROWS, KEYB_COLS );
+		keypad.setHoldTime(KEYB_HOLD_TIME);
+		keypad.setDebounceTime(KEYB_DEBOUNCE_TIME);
+		// add an event listener 
+		keypad.addEventListener(keypadEvent_frontKeys); 
 	
 	} // setup()
 	
