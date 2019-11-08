@@ -1,5 +1,25 @@
+#include <BlockDriver.h>
+#include <sdios.h>
+#include <FreeStack.h>
+#include <SdFat.h>
+#include <SysCall.h>
+#include <SdFatConfig.h>
+#include <MinimumSerial.h>
+
 
 #include "kimubo.h"
+
+//adapted version of libraries!
+#include "local.lib/Keypad/src/Keypad.h"
+#include "local.lib/Keypad/src/Keypad.cpp"
+#include "local.lib/Keypad/src/Key.h"
+#include "local.lib/Keypad/src/Key.cpp"
+
+// wir verwenden das Arduino Pro Mini interne EEPROM zum speichern von Einstellungen
+#include <EEPROM.h>
+
+
+
 	
 	
 	
@@ -22,110 +42,57 @@
 	// 0. a semi-statemachine for the keys
 	
 		static bool keybIsMoreThanOneKeyPressed = false; // true, if more than one key is pressed - we don't want multikey right now!
-		static char keybPressedKey = ''; 	// is set to a key that is pressed alone. Used to act only at release of this key, not on pressing it. Also used for acting on hold of key.
-		static char keybHeldKey = ''; 		//used to remember which key was held (to act on its release)
+		static char keybPressedKey = NULL; 	// is set to a key that is pressed alone. Used to act only at release of this key, not on pressing it. Also used for acting on hold of key.
+		static char keybHeldKey = NULL; 		//used to remember which key was held (to act on its release)
 		
 
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 1. Definition KeyScanCodes
-		static const char KEYSCAN_1      = 	'1'	;	 
-		static const char KEYSCAN_2      = 	'2'	;	
-		static const char KEYSCAN_3      = 	'3'	;	 
-		static const char KEYSCAN_4      = 	'4'	;	 
-		static const char KEYSCAN_5      = 	'5'	;	 
-		static const char KEYSCAN_6      = 	'6'	;	
-		static const char KEYSCAN_7      = 	'7'	;	 
-		static const char KEYSCAN_8      = 	'8'	;	 
-		static const char KEYSCAN_9      = 	'9'	;	 
-		static const char KEYSCAN_FFWD   = 	'F'	;	 // FastForwar / Skip
-		static const char KEYSCAN_REW    = 	'R'	;	 // Rewind / Skipback
-		static const char KEYSCAN_STAT   = 	'Z'	;	 // Status (output via speech)
-		static const char KEYSCAN_SLEEP  = 	'S'	;	 // Sleep-Timer-Set
-		static const char KEYSCAN_LOUD   = 	'L'	;	 // Parental switch for Volume-Preset: Loud or whisper
-		static const char KEYSCAN_PTT    = 	'A'	;	 // PushToTalk (for walkie talkie)
-		static const char KEYSCAN_B      = 	'B'	;	 // reserved for future use
+    // see .h file
 					
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 2. Aus wievielen Reihen und Spalten ist Matrix des Keyboards aufgebaut?
-
-		// real hardware no. of rows/colums
-		static const byte KEYB_ROWS = 4;
-		static const byte KEYB_COLS = 4;
+    // see .h file
 		
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 3. Which pin has which matrix-keyboard-row/-column?
-		
-		// pins are Arduino pin nr.	
-		static const byte KEYB_PIN_COLUMN1 	= 8;
-		static const byte KEYB_PIN_COLUMN2 	= 7;
-		static const byte KEYB_PIN_COLUMN3 	= 6;
-		static const byte KEYB_PIN_COLUMN4 	= 5;
-		static const byte KEYB_PIN_ROW1 	= A3;	 // used as digital pin
-		static const byte KEYB_PIN_ROW2 	= A2;    // used as digital pin
-		static const byte KEYB_PIN_ROW3 	= A1;    // used as digital pin
-		static const byte KEYB_PIN_ROW4 	= A0;    // used as digital pin
+    // see .h file
 		
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 4. Which Pins are rows, which are columns 
-	
-		// für Power Down müssen alle Reihen-Pins auf High gesezt werden (und danach wieder auf Low)
-		// dazu müssen wir festlagen, welches die Reihen-Pins und welches die Spalten-Pins sind
-		static const byte KEYB_RowPins[KEYB_ROWS] = {	
-			KEYB_PIN_ROW1, 
-			KEYB_PIN_ROW2,
-			KEYB_PIN_ROW3,
-			KEYB_PIN_ROW4
-		}; //connect to the row pinouts of the keypad	
-										
-		static const byte KEYB_ColPins[KEYB_COLS] = {
-			KEYB_PIN_COLUMN1,
-			KEYB_PIN_COLUMN2,
-			KEYB_PIN_COLUMN3,
-			KEYB_PIN_COLUMN4
-		}; //connect to the column pinouts of the keypad
-
+    // see .h file
 		
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 5. damit µC zwischendurch in Powerdown gehen kann, müssen alle Keyboard-Inputs (=Reihen, s.o.) mit je einer Diode an diesen Interrupt-Pin angeschlossen sein; dieser weckt dann den µC auf)
-		static const byte KEYB_PIN_INTERRUPT = 2;
+    // see .h file
 		
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 6. Die TastaturBelegung selbst = welche Taste ist wo?
-			
-		static const char KEYB_keyScans[KEYB_ROWS][KEYB_COLS] = {
-			{	KEYSCAN_1,		KEYSCAN_2,		KEYSCAN_3,	  	KEYSCAN_STAT	},
-			{	KEYSCAN_4,		KEYSCAN_5,		KEYSCAN_6,	    KEYSCAN_SLEEP	},
-			{	KEYSCAN_7,		KEYSCAN_8,		KEYSCAN_9,	    KEYSCAN_LOUD	},
-			{	KEYSCAN_FFWD,	KEYSCAN_REW,  	KEYSCAN_PTT,  	KEYSCAN_B		}
-		};
+    // see .h file
 	
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 7. keypad settings
-		
-		//Set the amount of milliseconds the user will have to hold a button until the HOLD state is triggered. (default = 500)
-		#define KEYB_HOLD_TIME 	500 
-		//Set the amount of milliseconds the keypad will wait until it accepts a new keypress/keyEvent. This is the "time delay" debounce method.  (default = 10)
-		#define KEYB_DEBOUNCE_TIME 	10 	
+    // see .h file
 		  
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 8. the keypad/keyboard itself		
-		Keypad keypad; // defined in setup()
+		extern Keypad keypad; // defined in setup()
 	
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -141,71 +108,82 @@
 			// then only one key can be added to keys-list. :-)
 			
 			if ( keypad.numKeys() > 1 ) {
+				keybPressedKey = NULL; // if several keys are pressed together, don't do anything, thus forget pressed/held keys and clear all keys from keylist.
+				keybHeldKey = NULL;
+				keypad.clearList();
+			} else {
+
 				switch (keypad.getState()){
 					case PRESSED:
-						if ( (key >= '1' && key <='9') || key <='F' || key <='R' ) {
-							keybPressedKey = key;
-						}
+						keybPressedKey = key;
 						break;
-
-					case RELEASED:
-						if (key >= '1' && key <='9') {
-							if (key == keybPressedKey) {
-								keybPressedKey = '';
-								if (key != keybHeldKey) {
-									// play playlist nr. <key> from beginning
-								} else {
-									keybHeldKey = '';
-									// play playlist nr. <key> from stored position (from EEPROM)
-								}
-							} else {
-								// this should never happen because of keybIsMoreThanOneKeyPressed!
-							}
-						} else if (key=='F') {
-							if (key == keybPressedKey) {
-								keybPressedKey = '';
-								if (key != keybHeldKey) {
-									// skip to next track in playlist
-								} else {
-									keybHeldKey = '';
-									// we were seeking, thus we don't do anything at release
-								}
-							} else {
-								// this should never happen because of keybIsMoreThanOneKeyPressed!
-							}
-						} else if (key=='B') {
-							if (key == keybPressedKey) {
-								keybPressedKey = '';
-								if (key != keybHeldKey) {
-									// skip to previous track in playlist
-								} else {
-									keybHeldKey = '';
-									// we were backseeking, thus we don't do anything at release
-								}
-							} else {
-								// this should never happen because of keybIsMoreThanOneKeyPressed!
-							}
-						}
-						break;
-
+						
 					case HOLD:
-						if ( key >= '1' && key <='9') {
-							keybHeldKey = key;
-						} else if ( key <='F' ) {
-							keybHeldKey = key;
+						keybHeldKey = key;
+						if ( key ='F' ) {
 							// seeking while button is held
 							
-						} else if ( key <='R') {
-							keybHeldKey = key;
+						} else if ( key ='R') {
 							// seeking back while button is held
 							
 						}
 						break;
+
+					case RELEASED:
+						// Handle errors:
+						// 1. case: 
+							if (key != keybPressedKey) {
+								// this must never happen : how should keybPressedKey != key, if only one key is allowed AND one key was released?
+								break;
+							}
+						// 2. case:
+							if ( (keybHeldKey != NULL) && (key != keybHeldKey) ) {
+								// this must never happen: how should keybHeldKey != key, if only one key is allowed AND one key was released?
+								break;
+							}
+						// if we came to here, then no errors apparent
+					
+						if (key >= '1' && key <='9') {
+							if (keybHeldKey == NULL) {
+								// key released after pressed but not held
+								// play playlist nr. <key> from beginning
+							} else {
+								// key released after held
+								// play playlist nr. <key> from stored position (from EEPROM)
+							} 
+						} else if (key=='F') {
+							if (keybHeldKey == NULL) {
+								// key released after pressed but not held
+								// skip to next track in playlist
+							} else if (key == keybHeldKey) {
+								// key released after held
+								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
+							}
+						} else if (key=='B') {
+							if (keybHeldKey == NULL) {
+								// key released after pressed but not held
+								// skip to previous track in playlist
+							} else if (key == keybHeldKey) {
+								// key released after held
+								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
+							}
+						} else if (key=='S') {
+							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
+							// setSleeper()
+						} else if (key=='L') {
+							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
+							// setLoudness()
+						} else if (key=='Z') {
+							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
+							// tellStatus()
+						}
+						
+						// clean up the flags (remember: only one key allowed at any time!)
+						keybPressedKey = NULL;
+						keybHeldKey = NULL;
+						break;
 				} // switch
-			} else {
-				keybPressedKey = ''; // if several keys are pressed together, don't do anything, thus forget pressed/held keys
-				keybHeldKey = '';
-			}
+			} // if
 		} // keypadEvent
 		
 
@@ -244,8 +222,8 @@
 		void setupReadVcc(){
 			// STEP 0: Read gv_smUBat_ChipsVccCompensationValue from EEPROM (see below for explanation on that value!)
 			EEPROM.get(EEPROM_VCCCOMPENSATION_ADDR, gv_UBat_ChipsVccCompensationValue); // this is a long, i.e. 4 bytes!
-			Serial.print(F("smMain ChipsVccCompensationValue from EEPROM: "));
-			Serial.println(v_smMain_ChipsVccCompensationValue);
+			Serial.print(F("gv_UBat_ChipsVccCompensationValue from EEPROM: "));
+			Serial.println(gv_UBat_ChipsVccCompensationValue);
 			if ( gv_UBat_ChipsVccCompensationValue == -1 ) {
 				// nothing was stored in EEPROM --> default to assumption that Vcc is exactely 5.00V
 				// see http://provideyourown.com/2012/secret-arduino-voltmeter-measure-battery-voltage/ for details.
@@ -287,7 +265,6 @@
 
 
 
- 
 // ####################################################################################
 // ####################################################################################
 // ####################################################################################
@@ -300,17 +277,23 @@
 /* 
  * Abschnitt SETUP
  */
-	
-	void setup() {
-	
-		// Setup of Keypad/keyboard
-		Keypad keypad = Keypad( makeKeymap(KEYB_keyScans), KEYB_RowPins, KEYB_ColPins, KEYB_ROWS, KEYB_COLS );
-		keypad.setHoldTime(KEYB_HOLD_TIME);
-		keypad.setDebounceTime(KEYB_DEBOUNCE_TIME);
-		// add an event listener 
-		keypad.addEventListener(keypadEvent_frontKeys); 
-	
-	} // setup()
+
+  Keypad keypad = Keypad( makeKeymap(KEYB_keyScans), KEYB_RowPins, KEYB_ColPins, KEYB_ROWS, KEYB_COLS );
+  
+  void setup() {
+  
+    // Setup of Keypad/keyboard
+    
+    keypad.setHoldTime(KEYB_HOLD_TIME);
+    keypad.setDebounceTime(KEYB_DEBOUNCE_TIME);
+    // add an event listener 
+    keypad.addEventListener(keypadEvent); 
+  
+  } // setup()
+
+
+ 
+
 	
 // ####################################################################################
 // ####################################################################################
@@ -326,5 +309,9 @@
  */
 	
 	void loop() {
+		
+		// check if something is happening on the keypad (e.g. key pressed released)
+		keypad.getKeys(); // we only need to check for one key as we do not use multikey - but the whole eventListener-thing in keypad works with "getKeys()".
+		// tbd. define MAX_KEYS 1!
 	
 	} // loop()	

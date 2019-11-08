@@ -95,7 +95,7 @@
 		
 		static const byte EEPROM_LAST_PLAYLIST_ADDR		=	EEPROM_VCCCOMPENSATION_ADDR + 4	; // one byte used
 		
-		static const byte EEPROM_LAST_TRACK_IN_PLAYLIST[8] = {	EEPROM_LAST_PLAYLIST_ADDR + 1,
+		static const byte EEPROM_LAST_TRACK_IN_PLAYLIST[9] = {	EEPROM_LAST_PLAYLIST_ADDR + 1,
 																EEPROM_LAST_PLAYLIST_ADDR + 3,
 																EEPROM_LAST_PLAYLIST_ADDR + 5,
 																EEPROM_LAST_PLAYLIST_ADDR + 7,
@@ -105,7 +105,7 @@
 																EEPROM_LAST_PLAYLIST_ADDR + 15,
 																EEPROM_LAST_PLAYLIST_ADDR + 17}; // two bytes used, each
 																
-		static const byte EEPROM_LAST_POSITION_IN_TRACK_IN_PLAYLIST[8] = {	EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 2,
+		static const byte EEPROM_LAST_POSITION_IN_TRACK_IN_PLAYLIST[9] = {	EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 2,
 																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 6,
 																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 10,
 																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 14,
@@ -114,8 +114,115 @@
 																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 26,
 																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 30,
 																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 34}; // four bytes used, each
-		
-		
+
+
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+/* 
+ * Abschnitt MatrixKeyboard
+ */
+ 
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // 1. Definition KeyScanCodes
+    static const char KEYSCAN_1      =  '1' ;  
+    static const char KEYSCAN_2      =  '2' ; 
+    static const char KEYSCAN_3      =  '3' ;  
+    static const char KEYSCAN_4      =  '4' ;  
+    static const char KEYSCAN_5      =  '5' ;  
+    static const char KEYSCAN_6      =  '6' ; 
+    static const char KEYSCAN_7      =  '7' ;  
+    static const char KEYSCAN_8      =  '8' ;  
+    static const char KEYSCAN_9      =  '9' ;  
+    static const char KEYSCAN_FFWD   =  'F' ;  // FastForwar / Skip
+    static const char KEYSCAN_REW    =  'R' ;  // Rewind / Skipback
+    static const char KEYSCAN_STAT   =  'Z' ;  // Status (output via speech)
+    static const char KEYSCAN_SLEEP  =  'S' ;  // Sleep-Timer-Set
+    static const char KEYSCAN_LOUD   =  'L' ;  // Parental switch for Volume-Preset: Loud or whisper
+    static const char KEYSCAN_PTT    =  'A' ;  // PushToTalk (for walkie talkie)
+    static const char KEYSCAN_B      =  'B' ;  // reserved for future use
+          
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // 2. Aus wievielen Reihen und Spalten ist Matrix des Keyboards aufgebaut?
+
+    // real hardware no. of rows/colums
+    static const byte KEYB_ROWS = 4;
+    static const byte KEYB_COLS = 4;
+    
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // 3. Which pin has which matrix-keyboard-row/-column?
+    
+    // pins are Arduino pin nr. 
+    static const byte KEYB_PIN_COLUMN1  = 8;
+    static const byte KEYB_PIN_COLUMN2  = 7;
+    static const byte KEYB_PIN_COLUMN3  = 6;
+    static const byte KEYB_PIN_COLUMN4  = 5;
+    static const byte KEYB_PIN_ROW1   = A3;  // used as digital pin
+    static const byte KEYB_PIN_ROW2   = A2;    // used as digital pin
+    static const byte KEYB_PIN_ROW3   = A1;    // used as digital pin
+    static const byte KEYB_PIN_ROW4   = A0;    // used as digital pin
+    
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // 4. Which Pins are rows, which are columns 
+  
+    // für Power Down müssen alle Reihen-Pins auf High gesezt werden (und danach wieder auf Low)
+    // dazu müssen wir festlagen, welches die Reihen-Pins und welches die Spalten-Pins sind
+    static const byte KEYB_RowPins[KEYB_ROWS] = { 
+      KEYB_PIN_ROW1, 
+      KEYB_PIN_ROW2,
+      KEYB_PIN_ROW3,
+      KEYB_PIN_ROW4
+    }; //connect to the row pinouts of the keypad 
+                    
+    static const byte KEYB_ColPins[KEYB_COLS] = {
+      KEYB_PIN_COLUMN1,
+      KEYB_PIN_COLUMN2,
+      KEYB_PIN_COLUMN3,
+      KEYB_PIN_COLUMN4
+    }; //connect to the column pinouts of the keypad
+
+    
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // 5. damit µC zwischendurch in Powerdown gehen kann, müssen alle Keyboard-Inputs (=Reihen, s.o.) mit je einer Diode an diesen Interrupt-Pin angeschlossen sein; dieser weckt dann den µC auf)
+    static const byte KEYB_PIN_INTERRUPT = 2;
+    
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // 6. Die TastaturBelegung selbst = welche Taste ist wo?
+      
+    static const char KEYB_keyScans[KEYB_ROWS][KEYB_COLS] = {
+      { KEYSCAN_1,    KEYSCAN_2,    KEYSCAN_3,      KEYSCAN_STAT  },
+      { KEYSCAN_4,    KEYSCAN_5,    KEYSCAN_6,      KEYSCAN_SLEEP },
+      { KEYSCAN_7,    KEYSCAN_8,    KEYSCAN_9,      KEYSCAN_LOUD  },
+      { KEYSCAN_FFWD, KEYSCAN_REW,    KEYSCAN_PTT,    KEYSCAN_B   }
+    };
+  
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // 7. keypad settings
+    
+    //Set the amount of milliseconds the user will have to hold a button until the HOLD state is triggered. (default = 500)
+    #define KEYB_HOLD_TIME  500 
+    //Set the amount of milliseconds the keypad will wait until it accepts a new keypress/keyEvent. This is the "time delay" debounce method.  (default = 10)
+    #define KEYB_DEBOUNCE_TIME  10  		
 	 
 
 
