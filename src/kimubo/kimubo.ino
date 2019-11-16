@@ -20,7 +20,322 @@
 
 
 
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+/* 
+ * Abschnitt finite state machine smMain
+ */
+ 
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// 1. state and transition callback functions
 	
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// 2. states
+		State smMain_state_init(NULL, NULL, NULL);
+		State smMain_state_idle(NULL, NULL, NULL);
+		State smMain_state_playWav(NULL, NULL, NULL);
+		State smMain_state_pause(NULL, NULL, NULL);
+		State smMain_state_seek(NULL, NULL, NULL);
+		State smMain_state_seekBack(NULL, NULL, NULL);
+		State smMain_state_playMessage(NULL, NULL, NULL);
+		State smMain_state_powerSave(NULL, NULL, NULL);
+
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// 3. some global variables of the state machine
+	
+		// for seeking, i.e. fast forward or backward in a track
+		// 				In order to do that we play a short part of the track,
+		// 				then hop to a position a little further, play again, hop again, etc.
+		//				There are two relevant user-defined constants:
+		//					a) SEEK_SPEEDUP				how fast shall seeking be (in times of normal play speed)
+		//					b) SEEK_DURATION_PLAYING	how much of a track shall be played between hops (in milliseconds)
+		#define SEEK_SPEEDUP			10
+		#define SEEK_DURATION_PLAYING	10
+		//				From those user-defined constants we can derive some internally relevant auto-constants:
+		//					c) SEEK_INTERVAL_LENGTH		how long is a one seek interval in total (playing + hopping)
+		//					d) SEEK_INTERVAL_HOP_FWD	how far do we hop forward before playing again
+		//					e) SEEK_INTERVAL_HOP_BWD	how far do we hop backward before playing again
+		#define SEEK_INTERVAL_LENGTH	(1000/SEEK_SPEEDUP)
+		#define SEEK_INTERVAL_HOP_FWD	(SEEK_INTERVAL_LENGTH-SEEK_DURATION_PLAYING)
+		#define SEEK_INTERVAL_HOP_BWD	(SEEK_INTERVAL_LENGTH+SEEK_DURATION_PLAYING)
+		
+		// for powersaving there is one relevant user-defined constant:
+		//					a) POWERSAVE_AFTER			after which time (in milliseconds) shall device enter low-power-state
+		//												coming from idle, the low-power-state is recoverable, 
+		//												i.e. we can return to idle on e.g. keypress
+		#define POWERSAVE_AFTER			30000
+		//				From this user-defined constant we can derive some internally relevant auto-constants:
+		//					b) POWERSAVE_AFTER_PAUSE	after which time in pause-state shall device enter low-power-state
+		//												(in times of POWERSAVE_AFTER, not milliseconds!)
+		//												coming from pause, the low-power-state is recoverable, 
+		// 												i.e. we can return to pause on e.g. keypress BUT NOT by just turning
+		//												the volume up again, thus do not choose a too small value here!
+		#define POWERSAVE_AFTER_PAUSE	(60*POWERSAVE_AFTER)
+		
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// 4. events (values don't matter, need to be unique each within this statemachine, though)
+		#define smMain_event_init_completed 				1
+		#define smMain_event_stop			 				5
+		#define smMain_event_playWav			 			10
+		#define smMain_event_playNextWav					12
+		#define smMain_event_playOtherPlaylist				13
+		#define smMain_event_pause							15
+		#define smMain_event_resume							20
+		#define smMain_event_skip				 			25
+		#define smMain_event_skipBack						30
+		#define smMain_event_seek							35
+		#define smMain_event_seekBack						40
+		#define smMain_event_gotoSleep 						45
+		#define smMain_event_wakeUpToIdle					47
+		#define smMain_event_wakeUpToPause					48
+		#define smMain_event_playMessage					50
+		#define smMain_event_playNextMessagePart			53
+		#define smMain_event_continue						55
+		#define smMain_event_returnToPause					60
+		#define smMain_event_returnToIdle					65
+		#define smMain_event_fatalerror_detected			255
+		
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// 5. init function for smMain
+		bool smMain_init_stateMachine(){
+			// initialize the whole statemachine, add transitions and so on...
+			
+			// A1 transition init to idle
+			// we are ready but not doing anything yet
+			smMain.add_transition(	&smMain_state_init, 
+									&smMain_state_idle, 
+									smMain_event_init_completed, 
+									NULL);
+									
+			// --------- PLAYING / play a track and at end of track continue with next track ---------
+			
+			// B1 transitions idle to playWav (normal player, not messages)
+			// start playing something
+		    smMain.add_transition(	&smMain_state_idle,  
+									&smMain_state_playWav,  
+									smMain_event_playWav,  
+									NULL);
+			
+			// B2 transitions playWav to playWav
+			// we have finished to play something and we now want to continue with next track
+		    smMain.add_transition(	&smMain_state_playWav,  
+									&smMain_state_playWav,  
+									smMain_event_playNextWav,  
+									NULL);
+									
+			// B3 transitions playWav to playWav
+			// we are playing and user wants to play other playlist
+		    smMain.add_transition(	&smMain_state_playWav,  
+									&smMain_state_playWav,  
+									smMain_event_playOtherPlaylist,  
+									NULL);
+									
+			// --------- STOPPING / stop to play ---------
+									
+			// C1 transitions playWav to idle
+			// we are playing or have finished to play and now want to stop playing
+			// this transition is also used by sleepTimer (in order to end playing and later go to low power mode)
+		    smMain.add_transition(	&smMain_state_playWav,  
+									&smMain_state_idle,  
+									smMain_event_stop,  
+									NULL);
+									
+			// C2 transitions pause to idle
+			// we have paused and now want to stop playing
+			// this transition is ONLY used by sleepTimer (in order to end playing and later go to low power mode)
+		    smMain.add_transition(	&smMain_state_pause,  
+									&smMain_state_idle,  
+									smMain_event_stop,  
+									NULL);
+			
+			// --------- PAUSING / halt playing and later continue playing seamlessless --------------
+			
+			// D1 transitions playWav to pause
+			// we are playing something and want to pause
+		    smMain.add_transition(	&smMain_state_playWav,  
+									&smMain_state_pause,  
+									smMain_event_pause,  
+									NULL);
+								
+			// D2 transitions pause to playWav
+			// we have paused and now want to resume (aka. continue to play)
+		    smMain.add_transition(	&smMain_state_pause,  
+									&smMain_state_playWav,  
+									smMain_event_resume,  
+									NULL);
+									
+			// no extra transition for events 
+			// 						smMain_event_playOtherPlaylist
+			//						smMain_event_skip
+			//						smMain_event_skipBack
+			// 						smMain_event_seek
+			//						smMain_event_seekBack
+			// if user presses one of those buttons in pause, nothing happens at all!
+									
+			// -------- SKIPPING / Going to next or previous track by pressing buttons ---------------
+									
+			// E1 transitions playWav to playWav
+			// we are playing something and want to skip (to next track)
+		    smMain.add_transition(	&smMain_state_playWav,  
+									&smMain_state_playWav,  
+									smMain_event_skip,  
+									TBD.skip.function);											
+									
+		    // E2 transitions playWav to playWav
+			// we are playing something and want to skipBack (to previous track)
+		    smMain.add_transition(	&smMain_state_playWav,  
+									&smMain_state_playWav,  
+									smMain_event_skipBack,  
+									TBD.skipBack.function);	
+			
+			// --------- SEEKING / Going fast-forward or fast-backward in track -----------------------
+									
+			// F1 transitions playWav to seek
+			// we are playing something and want to seek (forward)
+		    smMain.add_transition(	&smMain_state_playWav,  
+									&smMain_state_seek,  
+									smMain_event_seek,  
+									NULL);	
+			
+			// F2 transitions seek to seek
+			// hop forward while seeking
+		    smMain.add_timed_transition(	&smMain_state_seek,  
+											&smMain_state_seek,  
+											SEEK_DURATION_PLAYING,  
+											TBD.seek.function);	
+									
+			// F3 transitions seek to playWav
+			// we were seeking and now return to play
+		    smMain.add_transition(	&smMain_state_seek,  
+									&smMain_state_playWav,  
+									smMain_event_continue,  
+									NULL);	
+			
+			// F4 transitions playWav to seekBack
+			// we are playing something and want to seek (backward)
+		    smMain.add_transition(	&smMain_state_playWav,  
+									&smMain_state_seekBack,  
+									smMain_event_seekBack,  
+									NULL);
+			
+			// F5 transitions seek to seek
+			// hop backward while seeking backwards
+		    smMain.add_timed_transition(	&smMain_state_seek,  
+											&smMain_state_seek,  
+											SEEK_DURATION_PLAYING,  
+											TBD.seekBack.function);	
+												
+			// F6 transitions seekBack to playWav
+			// we were seeking and now return to play
+		    smMain.add_transition(	&smMain_state_seekBack,  
+									&smMain_state_playWav,  
+									smMain_event_continue,  
+									NULL);
+			
+			// --------- PLAYMESSAGES / play a message and if necessary interrupt playing normal wav for that --------------
+			
+			// G1 transitions idle to playMessage
+			// we are not doing anything and now and want to play a message
+		    smMain.add_transition(	&smMain_state_idle,  
+									&smMain_state_playMessage,  
+									smMain_event_playMessage,  
+									NULL);	
+									
+			// G2 transitions playMessage to playMessage
+			// we are playing a message, finished with one part of the message and now want to play the next part
+		    smMain.add_transition(	&smMain_state_playMessage,  
+									&smMain_state_playMessage,  
+									smMain_event_playNextMessagePart,  
+									NULL);						
+			
+			// G3 transitions playMessage to idle
+			// we finished playing a message and return to do nothing
+		    smMain.add_transition(	&smMain_state_playMessage,  
+									&smMain_state_idle,  
+									smMain_event_returnToIdle,  
+									NULL);	
+			
+			// G4 transitions playWav to playMessage
+			// we are playing a normal wav and now want to interupt that for a message
+		    smMain.add_transition(	&smMain_state_playWav,  
+									&smMain_state_playMessage,  
+									smMain_event_playMessage,  
+									TBD.interrupt.function);						
+			
+			// G5 transitions playMessage to playWav
+			// we finished playing a message and return to playing normally
+		    smMain.add_transition(	&smMain_state_playMessage,  
+									&smMain_state_playWav,  
+									smMain_event_continue,  
+									TBD.resume.function);	
+									
+			// G6 transitions pause to playMessage
+			// we are pausing a normal wav and now want to interupt that for a message
+		    smMain.add_transition(	&smMain_state_pause,  
+									&smMain_state_playMessage,  
+									smMain_event_playMessage,  
+									TBD.interrupt.function);						
+			
+			// G7 transitions playMessage to pause
+			// we finished playing a message and return to pausing 
+		    smMain.add_transition(	&smMain_state_playMessage,  
+									&smMain_state_pause,  
+									smMain_event_returnToPause,  
+									TBD.resume.function);						
+			
+			// --------- POWERSAVE / send device to low power mode and wake up again --------------
+			
+			// H1 transitions idle to powerSave
+			// we are doing nothing and now want to save power
+		    smMain.add_timed_transition(	&smMain_state_idle,  
+											&smMain_state_powerSave,  
+											POWERSAVE_AFTER,  
+											NULL);
+											
+			// H2 transitions powerSave to idle
+			// recover from low power state
+		    smMain.add_transition(	&smMain_state_powerSave,  
+									&smMain_state_idle,  
+									smMain_event_wakeUpToIdle,  
+									NULL);	
+			
+			// H3 transitions pause to powerSave
+			// we are pausing (for quite some time!) and now want to save power
+		    smMain.add_timed_transition(	&smMain_state_pause,  
+											&smMain_state_powerSave,  
+											POWERSAVE_AFTER_PAUSE,  
+											NULL);	
+			
+			// H4 transitions powerSave to pause
+			// recover from low power state
+		    smMain.add_transition(	&smMain_state_powerSave,  
+									&smMain_state_pause,  
+									smMain_event_wakeUpToPause,  
+									NULL);
+									
+			// no need for a transition from playWav to powerSave:
+			// sleepTimer does not directly set powerSave-state but instead
+			// stops playing - after which the normal H1 transition is used to 
+			// put device into low power state after a certain time...
+														
+		}
 	
 	
 // ####################################################################################
@@ -261,8 +576,95 @@
 			// STEP 6: clean up
 			ADMUX = uBat_OldADMUX;	
 		} // readVcc()
+		
+		
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+/* 
+ * Abschnitt Messages
+ */
+/* 
+ * We have certain user interactions (setSleepTimer, readStatus, setLoudness) that require a feedback from the 
+ * KIMUBO to the user (in this case: parental user).
+ * Feedback is provided by the KIMUBO "speaking" to the user via pre-fabricated PCM files ("message-files").
+ * Those are also stored on the SDC in directory "/KIMUBOsystemmessages".
+ * 
+ * Prefabricated message-files have filenames 
+ * 			001.WAV, 002.WAV, 003.WAV, ..., 255.WAV
+ * We will be able to handle 255 different such files - addressing is done via a byte-type variable.
+ * 
+ * Playing messages is possible if either
+ * 		a) no normal WAV is being played (== player is stopped)
+ * 		b) normal WAV is being played (== player gets interrupted and remembers current position in normal WAV, message is played, normal WAV continues seamlessly)
+ * 
+ * Thus, 
+ * 		REQ1) message-player needs to be able to interrupt normal player and 
+ * 		REQ2) normal player needs to be 
+ * 			a) able to be interrupted and
+ * 			b) remember current position and 
+ * 			c) continue from that onwards.
+ * 
+ * Messages consist of several messge-tokens, each token to be stored inside a specific message-file.
+ * E.g. if we want to read out the current BAT voltage, then we might want to say:
+ * 		"Batteriespannung beträgt 4,8V"		("battery voltage is 4.8V")
+ * This would translate to tokens
+ * 		TOKEN	MESSAGE (german)					MESSAGE (engl. transl.)		BYTEVALUE (e.g.)
+ * 	  ----------------------------------------------------------------------------------------
+ * 		TOKEN1	"Batteriespannung beträgt "			("battery voltage is ")		17
+ * 		TOKEN2	"vier"								("four")					4
+ * 		TOKEN3	"Komma"								("point")					11
+ * 		TOKEN4	"acht"								("eight")					8
+ * 		TOKEN5	"Volt"								("volts")					18
+ * 
+ * These tokens are represented by a specific byte-value each.
+ * 
+ * If we want to define this message we need a byte[] = [17, 4, 11, 8, 18].
+ * If we want to play that message we need to
+ * 		- (if necessary) interupt current normal playing
+ * 		- iterate over our byte[] and play the corresponding message-files
+ * 		- (if necessary) continue with normal playing
+ * 
+ * In order to find the correct message-file from its corresponding byte-value a conversion is necessary: getMessageFilenameFromByteValue(byte byteValue)
+ */
+		
+		//  global variable, we only need one filename at a time
+		static char messageFileName[8];  
 
-
+		char* getMessageFilenameFromByteValue(byte byteValue){
+			
+			// we overwrite the char-array at address messageFileName, thus we need a pointer to that address which we can manipulate
+			char* p = messageFileName;
+			
+			// all message-files have a fixed filename-length of xxx.yyy, 
+			//     where xxx is the corresponding byte value (as a String withlength 3) and 
+			//     .yyy is the globally defined SUFFIX_PCM_FILES (typically something like ".WAV")
+			if (byteValue < 10) {
+				p = '0';					// write '0' to address messageFileName			
+				p++;
+				p = '0';					// write another '0' in next position  ( messageFileName now is "00xxxxxx" where x can be any char including '\0')
+				p++;
+				itoa(byteValue, p, 10); 	// write the single digit into next position ( messageFileName now is "00DTxxxx" where D is digit, and T='\0', and x can be any char including '\0')
+			} else if (byteValue < 100) {
+				p = '0';					// write '0' to address messageFileName		
+				p++;
+				itoa(byteValue, p, 10); 	// write two digits into next positions ( messageFileName now is "0DDTxxxx" where D is digit, and T='\0', and x can be any char including '\0')
+			} else {
+				itoa(byteValue, p, 10); 	// write three digits into next positions ( messageFileName now is "DDDTxxxx" where D is digit, and T='\0', and x can be any char including '\0')
+			}
+			
+			// now add file-suffix 
+			strncat(messageFileName, SUFFIX_PCM_FILES, 8); 
+			// messageFileName now is "DDD.WAVT" where D is digit, ".WAV" is just that and T='\0'
+			return messageFileName;
+			
+		}
 
 
 // ####################################################################################

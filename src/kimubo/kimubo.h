@@ -286,6 +286,14 @@
 			static const byte SDC_PIN_VCC		 		= 0; // directly connected to RAW
 			static const byte SDC_PIN_GND	 			= 0; // directly connected to GND
 			
+			
+			
+		// Globals
+		
+			// define what suffix all PCM/WAV files need to haave on the SD-card.
+			// relevant for "normal" PCM files as well as message-files.
+			char SUFFIX_PCM_FILES[5] = ".WAV";
+			
 	// ####################################################################################
 	// ####################################################################################
 	// ####################################################################################
@@ -308,6 +316,10 @@
 			static const byte AUDIO_PIN_OUT_LOW			= 10;  
 			
 			
+
+
+
+
 		
 		
 #endif // KIMUBO_H definition
