@@ -31,6 +31,30 @@
 
 
 
+		#include <Arduino.h>
+	
+	
+
+
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	/* 
+	 * Abschnitt DEBUG
+	 */
+
+		// defining debug --> serial output delivers information on internals, timing and cpu load may be a little of compared to non-debug-mode
+		#define debug
+		
+
+
+
 
 	// ####################################################################################
 	// ####################################################################################
@@ -116,114 +140,114 @@
 																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 34}; // four bytes used, each
 
 
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-// ####################################################################################
-/* 
- * Abschnitt MatrixKeyboard
- */
- 
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // 1. Definition KeyScanCodes
-    static const char KEYSCAN_1      =  '1' ;  
-    static const char KEYSCAN_2      =  '2' ; 
-    static const char KEYSCAN_3      =  '3' ;  
-    static const char KEYSCAN_4      =  '4' ;  
-    static const char KEYSCAN_5      =  '5' ;  
-    static const char KEYSCAN_6      =  '6' ; 
-    static const char KEYSCAN_7      =  '7' ;  
-    static const char KEYSCAN_8      =  '8' ;  
-    static const char KEYSCAN_9      =  '9' ;  
-    static const char KEYSCAN_FFWD   =  'F' ;  // FastForwar / Skip
-    static const char KEYSCAN_REW    =  'R' ;  // Rewind / Skipback
-    static const char KEYSCAN_STAT   =  'Z' ;  // Status (output via speech)
-    static const char KEYSCAN_SLEEP  =  'S' ;  // Sleep-Timer-Set
-    static const char KEYSCAN_LOUD   =  'L' ;  // Parental switch for Volume-Preset: Loud or whisper
-    static const char KEYSCAN_PTT    =  'A' ;  // PushToTalk (for walkie talkie)
-    static const char KEYSCAN_B      =  'B' ;  // reserved for future use
-          
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // 2. Aus wievielen Reihen und Spalten ist Matrix des Keyboards aufgebaut?
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	/* 
+	 * Abschnitt MatrixKeyboard
+	 */
+		 
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // 1. Definition KeyScanCodes
+			static const char KEYSCAN_1      =  '1' ;  
+			static const char KEYSCAN_2      =  '2' ; 
+			static const char KEYSCAN_3      =  '3' ;  
+			static const char KEYSCAN_4      =  '4' ;  
+			static const char KEYSCAN_5      =  '5' ;  
+			static const char KEYSCAN_6      =  '6' ; 
+			static const char KEYSCAN_7      =  '7' ;  
+			static const char KEYSCAN_8      =  '8' ;  
+			static const char KEYSCAN_9      =  '9' ;  
+			static const char KEYSCAN_FFWD   =  'F' ;  // FastForwar / Skip
+			static const char KEYSCAN_REW    =  'R' ;  // Rewind / Skipback
+			static const char KEYSCAN_STAT   =  'Z' ;  // Status (output via speech)
+			static const char KEYSCAN_SLEEP  =  'S' ;  // Sleep-Timer-Set
+			static const char KEYSCAN_LOUD   =  'L' ;  // Parental switch for Volume-Preset: Loud or whisper
+			static const char KEYSCAN_PTT    =  'A' ;  // PushToTalk (for walkie talkie)
+			static const char KEYSCAN_B      =  'B' ;  // reserved for future use
+				  
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // 2. Aus wievielen Reihen und Spalten ist Matrix des Keyboards aufgebaut?
 
-    // real hardware no. of rows/colums
-    static const byte KEYB_ROWS = 4;
-    static const byte KEYB_COLS = 4;
-    
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // 3. Which pin has which matrix-keyboard-row/-column?
-    
-    // pins are Arduino pin nr. 
-    static const byte KEYB_PIN_COLUMN1  = 8;
-    static const byte KEYB_PIN_COLUMN2  = 7;
-    static const byte KEYB_PIN_COLUMN3  = 6;
-    static const byte KEYB_PIN_COLUMN4  = 5;
-    static const byte KEYB_PIN_ROW1   = A3;  // used as digital pin
-    static const byte KEYB_PIN_ROW2   = A2;    // used as digital pin
-    static const byte KEYB_PIN_ROW3   = A1;    // used as digital pin
-    static const byte KEYB_PIN_ROW4   = A0;    // used as digital pin
-    
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // 4. Which Pins are rows, which are columns 
-  
-    // für Power Down müssen alle Reihen-Pins auf High gesezt werden (und danach wieder auf Low)
-    // dazu müssen wir festlagen, welches die Reihen-Pins und welches die Spalten-Pins sind
-    static const byte KEYB_RowPins[KEYB_ROWS] = { 
-      KEYB_PIN_ROW1, 
-      KEYB_PIN_ROW2,
-      KEYB_PIN_ROW3,
-      KEYB_PIN_ROW4
-    }; //connect to the row pinouts of the keypad 
-                    
-    static const byte KEYB_ColPins[KEYB_COLS] = {
-      KEYB_PIN_COLUMN1,
-      KEYB_PIN_COLUMN2,
-      KEYB_PIN_COLUMN3,
-      KEYB_PIN_COLUMN4
-    }; //connect to the column pinouts of the keypad
+			// real hardware no. of rows/colums
+			static const byte KEYB_ROWS = 4;
+			static const byte KEYB_COLS = 4;
+			
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // 3. Which pin has which matrix-keyboard-row/-column?
+			
+			// pins are Arduino pin nr. 
+			static const byte KEYB_PIN_COLUMN1  = 8;
+			static const byte KEYB_PIN_COLUMN2  = 7;
+			static const byte KEYB_PIN_COLUMN3  = 6;
+			static const byte KEYB_PIN_COLUMN4  = 5;
+			static const byte KEYB_PIN_ROW1   = A3;  // used as digital pin
+			static const byte KEYB_PIN_ROW2   = A2;    // used as digital pin
+			static const byte KEYB_PIN_ROW3   = A1;    // used as digital pin
+			static const byte KEYB_PIN_ROW4   = A0;    // used as digital pin
+			
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // 4. Which Pins are rows, which are columns 
+		  
+			// für Power Down müssen alle Reihen-Pins auf High gesezt werden (und danach wieder auf Low)
+			// dazu müssen wir festlagen, welches die Reihen-Pins und welches die Spalten-Pins sind
+			static const byte KEYB_RowPins[KEYB_ROWS] = { 
+			  KEYB_PIN_ROW1, 
+			  KEYB_PIN_ROW2,
+			  KEYB_PIN_ROW3,
+			  KEYB_PIN_ROW4
+			}; //connect to the row pinouts of the keypad 
+							
+			static const byte KEYB_ColPins[KEYB_COLS] = {
+			  KEYB_PIN_COLUMN1,
+			  KEYB_PIN_COLUMN2,
+			  KEYB_PIN_COLUMN3,
+			  KEYB_PIN_COLUMN4
+			}; //connect to the column pinouts of the keypad
 
-    
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // 5. damit µC zwischendurch in Powerdown gehen kann, müssen alle Keyboard-Inputs (=Reihen, s.o.) mit je einer Diode an diesen Interrupt-Pin angeschlossen sein; dieser weckt dann den µC auf)
-    static const byte KEYB_PIN_INTERRUPT = 2;
-    
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // 6. Die TastaturBelegung selbst = welche Taste ist wo?
-      
-    static const char KEYB_keyScans[KEYB_ROWS][KEYB_COLS] = {
-      { KEYSCAN_1,    KEYSCAN_2,    KEYSCAN_3,      KEYSCAN_STAT  },
-      { KEYSCAN_4,    KEYSCAN_5,    KEYSCAN_6,      KEYSCAN_SLEEP },
-      { KEYSCAN_7,    KEYSCAN_8,    KEYSCAN_9,      KEYSCAN_LOUD  },
-      { KEYSCAN_FFWD, KEYSCAN_REW,    KEYSCAN_PTT,    KEYSCAN_B   }
-    };
-  
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // 7. keypad settings
-    
-    //Set the amount of milliseconds the user will have to hold a button until the HOLD state is triggered. (default = 500)
-    #define KEYB_HOLD_TIME  500 
-    //Set the amount of milliseconds the keypad will wait until it accepts a new keypress/keyEvent. This is the "time delay" debounce method.  (default = 10)
-    #define KEYB_DEBOUNCE_TIME  10  		
-	 
+			
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // 5. damit µC zwischendurch in Powerdown gehen kann, müssen alle Keyboard-Inputs (=Reihen, s.o.) mit je einer Diode an diesen Interrupt-Pin angeschlossen sein; dieser weckt dann den µC auf)
+			static const byte KEYB_PIN_INTERRUPT = 2;
+			
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // 6. Die TastaturBelegung selbst = welche Taste ist wo?
+			  
+			static const char KEYB_keyScans[KEYB_ROWS][KEYB_COLS] = {
+			  { KEYSCAN_1,    KEYSCAN_2,    KEYSCAN_3,      KEYSCAN_STAT  },
+			  { KEYSCAN_4,    KEYSCAN_5,    KEYSCAN_6,      KEYSCAN_SLEEP },
+			  { KEYSCAN_7,    KEYSCAN_8,    KEYSCAN_9,      KEYSCAN_LOUD  },
+			  { KEYSCAN_FFWD, KEYSCAN_REW,    KEYSCAN_PTT,    KEYSCAN_B   }
+			};
+		  
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		  // 7. keypad settings
+			
+			//Set the amount of milliseconds the user will have to hold a button until the HOLD state is triggered. (default = 500)
+			#define KEYB_HOLD_TIME  500 
+			//Set the amount of milliseconds the keypad will wait until it accepts a new keypress/keyEvent. This is the "time delay" debounce method.  (default = 10)
+			#define KEYB_DEBOUNCE_TIME  10  		
+			 
 
 
 
@@ -313,12 +337,68 @@
 		// Pins
 			// pins are Arduino pin nr.	
 			static const byte AUDIO_PIN_OUT_HIGH		= 9; 
-			static const byte AUDIO_PIN_OUT_LOW			= 10;  
+			static const byte AUDIO_PIN_OUT_LOW			= 10; 
 			
 			
+		//ludgerknorps debug: wie viele Microsekunden zwischen PWM Interupt Aufrufen
+			//static unsigned long myMicros[10];
+			//static byte myMicrosCounter = 0;
+		
+		//ludgerknorps ISR-debug
+			// Interupt-debug: 	at begin of each ISR, one pin (for each interupt) is set low; at end of ISR the pin is set to high again.
+			// 					this is for debugging the exact timing via e.g. oscilloscope or logic analyzer
+			// ATTENTION: uses fast-setpin-macros, beware of using pins that are used for something else, no checks are done!
+				// pin A4 = pin D18, pin A5 = pin D19!
+				//#define ISR_BUFFER_DEBUG_PIN 	4
+				//#define ISR_PCMFEED_DEBUG_PIN	6
 
 
 
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	/* 
+	 * Abschnitt fast (!) replacements for digitalWrite() and digitalRead()
+	 */
+		
+		// ludgerknorps stuff
+		// fast (!) replacements for digitalWrite() and digitalRead() - about 20x faster than digitalWrite().
+		// see https://www.best-microcontroller-projects.com/arduino-digitalwrite.html for more explanation
+		// use as in 
+		// 			setPinD0_D7(5)			--> set Pin D5  aka. PORTD.5 = HIGH
+		//			clrPinD8_D13(12)		--> clear Pin D12 aka. PORTB.5 = LOW
+		// 			readPinA0_A7(5)			--> read Pin A5  aka. PORTC.5 
+		//			writePinD0_D7(5,LOW)	--> clear Pin D5  aka. PORTD.5 = LOW 
+			#define setPinD0_D7(pinNo) 		( PORTD |=(1<<(pinNo)) )
+			#define setPinD8_D13(pinNo) 	( PORTB |=(1<<(pinNo-8)) )
+			#define setPinA0_A7(pinNo) 		( PORTC |=(1<<(pinNo)) )
+			#define setPinD14_D21(pinNo) 	( setPinA0_A7(pinNo-13) )
+
+			#define clrPinD0_D7(pinNo) 		( PORTD &=~(1<<(pinNo)) )
+			#define clrPinD8_D13(pinNo) 	( PORTB &=~(1<<(pinNo-8)) )
+			#define clrPinA0_A7(pinNo) 		( PORTC &=~(1<<(pinNo)) )
+			#define clrPinD14_D21(pinNo) 	( clrPinA0_A7(pinNo-13) )
+
+			// more comfortable but slightly slower 
+			#define writePinD0_D7(pinNo, boolValue) 	( (boolValue && setPinD0_D7(pinNo))  || clrPinD0_D7(pinNo) )
+			#define writePinD8_D13(pinNo, boolValue) 	( (boolValue && setPinD8_D13(pinNo)) || clrPinDD8_D13(pinNo) )
+			#define writePinA0_A7(pinNo, boolValue) 	( (boolValue && setPinA0_A7(pinNo))  || clrPinA0_A7(pinNo) )
+			
+			// more comfortable but even more (slightly) slower 
+			#define setPinD0_D21(pinNo) 				( ((pinNo)>13) ? setPinA0_A7(pinNo-13) : ( (pinNo)>8 ? setPinD8_D13(pinNo-8) : setPinD0_D7(pinNo) ) )
+			#define clrPinD0_D21(pinNo) 				( ((pinNo)>13) ? clrPinA0_A7(pinNo-13) : ( (pinNo)>8 ? clrPinD8_D13(pinNo-8) : clrPinD0_D7(pinNo) ) )
+			#define writePinD0_D21(pinNo, boolValue) 	( (boolValue && setPinD0_D21(pinNo))  || clrPinD0_D21(pinNo) )
+			
+			// sometimes reading is better than writing...
+			#define readPinD0_D7(pinNo) 	( (PORTD &(1<<(pinNo)))!=0 )
+			#define readPinD8_D13(pinNo) 	( (PORTB &(1<<(pinNo-8)))!=0 )
+			#define readPinA0_A7(pinNo) 	( (PORTD &(1<<(pinNo)))!=0 )
 
 		
 		

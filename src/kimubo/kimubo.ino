@@ -38,18 +38,54 @@
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 1. state and transition callback functions
 	
+		void smMain_state_init_onEnter();
+		
+		void smMain_state_idle_onEnter();
+		
+		void smMain_state_seek_onEnter();
+		void smMain_state_seekBack_onEnter();
+		
+		void smMain_state_powerSave_onEnter();
+		
+		void smMain_state_powerSave_onExit();
+		
+		
+		// transitionActions
+		void smMain_trans_B1_onTransition();
+		void smMain_trans_B2_onTransition();
+		void smMain_trans_B3_onTransition();
+		
+		void smMain_trans_D1_onTransition();
+		void smMain_trans_D2_onTransition();
+		
+		void smMain_trans_E1_onTransition();
+		void smMain_trans_E2_onTransition();
+		
+		void smMain_trans_F2_onTransition();
+		void smMain_trans_F5_onTransition();
+		
+		void smMain_trans_G1_onTransition();
+		void smMain_trans_G2_onTransition();
+		void smMain_trans_G4_onTransition();
+		void smMain_trans_G5_onTransition();
+		void smMain_trans_G6_onTransition();
+		void smMain_trans_G7_onTransition();
+		
+		
+		
+	
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 2. states
-		State smMain_state_init(NULL, NULL, NULL);
-		State smMain_state_idle(NULL, NULL, NULL);
+		State smMain_state_init(&smMain_state_init_onEnter, NULL, NULL);
+		State smMain_state_idle(&smMain_state_idle_onEnter, NULL, NULL);
 		State smMain_state_playWav(NULL, NULL, NULL);
 		State smMain_state_pause(NULL, NULL, NULL);
-		State smMain_state_seek(NULL, NULL, NULL);
-		State smMain_state_seekBack(NULL, NULL, NULL);
+		State smMain_state_seek(&smMain_state_seek_onEnter, NULL, NULL);
+		State smMain_state_seekBack(&smMain_state_seekBack_onEnter, NULL, NULL);
 		State smMain_state_playMessage(NULL, NULL, NULL);
-		State smMain_state_powerSave(NULL, NULL, NULL);
+		State smMain_state_powerSave(&smMain_state_powerSave_onEnter, NULL, &smMain_state_powerSave_onExit);
 
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -131,21 +167,21 @@
 		    smMain.add_transition(	&smMain_state_idle,  
 									&smMain_state_playWav,  
 									smMain_event_playWav,  
-									NULL);
+									&smMain_trans_B1_onTransition);
 			
 			// B2 transitions playWav to playWav
 			// we have finished to play something and we now want to continue with next track
 		    smMain.add_transition(	&smMain_state_playWav,  
 									&smMain_state_playWav,  
 									smMain_event_playNextWav,  
-									NULL);
+									&smMain_trans_B2_onTransition);
 									
 			// B3 transitions playWav to playWav
 			// we are playing and user wants to play other playlist
 		    smMain.add_transition(	&smMain_state_playWav,  
 									&smMain_state_playWav,  
 									smMain_event_playOtherPlaylist,  
-									NULL);
+									&smMain_trans_B3_onTransition);
 									
 			// --------- STOPPING / stop to play ---------
 									
@@ -172,14 +208,14 @@
 		    smMain.add_transition(	&smMain_state_playWav,  
 									&smMain_state_pause,  
 									smMain_event_pause,  
-									NULL);
+									&smMain_trans_D1_onTransition);
 								
 			// D2 transitions pause to playWav
 			// we have paused and now want to resume (aka. continue to play)
 		    smMain.add_transition(	&smMain_state_pause,  
 									&smMain_state_playWav,  
 									smMain_event_resume,  
-									NULL);
+									&smMain_trans_D2_onTransition);
 									
 			// no extra transition for events 
 			// 						smMain_event_playOtherPlaylist
@@ -196,14 +232,14 @@
 		    smMain.add_transition(	&smMain_state_playWav,  
 									&smMain_state_playWav,  
 									smMain_event_skip,  
-									TBD.skip.function);											
+									&smMain_trans_E1_onTransition);											
 									
 		    // E2 transitions playWav to playWav
 			// we are playing something and want to skipBack (to previous track)
 		    smMain.add_transition(	&smMain_state_playWav,  
 									&smMain_state_playWav,  
 									smMain_event_skipBack,  
-									TBD.skipBack.function);	
+									&smMain_trans_E2_onTransition);	
 			
 			// --------- SEEKING / Going fast-forward or fast-backward in track -----------------------
 									
@@ -219,7 +255,7 @@
 		    smMain.add_timed_transition(	&smMain_state_seek,  
 											&smMain_state_seek,  
 											SEEK_DURATION_PLAYING,  
-											TBD.seek.function);	
+											&smMain_trans_F2_onTransition);	
 									
 			// F3 transitions seek to playWav
 			// we were seeking and now return to play
@@ -240,7 +276,7 @@
 		    smMain.add_timed_transition(	&smMain_state_seek,  
 											&smMain_state_seek,  
 											SEEK_DURATION_PLAYING,  
-											TBD.seekBack.function);	
+											&smMain_trans_F5_onTransition);	
 												
 			// F6 transitions seekBack to playWav
 			// we were seeking and now return to play
@@ -256,14 +292,14 @@
 		    smMain.add_transition(	&smMain_state_idle,  
 									&smMain_state_playMessage,  
 									smMain_event_playMessage,  
-									NULL);	
+									&smMain_trans_G1_onTransition);	
 									
 			// G2 transitions playMessage to playMessage
 			// we are playing a message, finished with one part of the message and now want to play the next part
 		    smMain.add_transition(	&smMain_state_playMessage,  
 									&smMain_state_playMessage,  
 									smMain_event_playNextMessagePart,  
-									NULL);						
+									&smMain_trans_G2_onTransition);						
 			
 			// G3 transitions playMessage to idle
 			// we finished playing a message and return to do nothing
@@ -277,28 +313,28 @@
 		    smMain.add_transition(	&smMain_state_playWav,  
 									&smMain_state_playMessage,  
 									smMain_event_playMessage,  
-									TBD.interrupt.function);						
+									&smMain_trans_G4_onTransition);						
 			
 			// G5 transitions playMessage to playWav
 			// we finished playing a message and return to playing normally
 		    smMain.add_transition(	&smMain_state_playMessage,  
 									&smMain_state_playWav,  
 									smMain_event_continue,  
-									TBD.resume.function);	
+									&smMain_trans_G5_onTransition);	
 									
 			// G6 transitions pause to playMessage
 			// we are pausing a normal wav and now want to interupt that for a message
 		    smMain.add_transition(	&smMain_state_pause,  
 									&smMain_state_playMessage,  
 									smMain_event_playMessage,  
-									TBD.interrupt.function);						
+									&smMain_trans_G6_onTransition);						
 			
 			// G7 transitions playMessage to pause
 			// we finished playing a message and return to pausing 
 		    smMain.add_transition(	&smMain_state_playMessage,  
 									&smMain_state_pause,  
 									smMain_event_returnToPause,  
-									TBD.resume.function);						
+									&smMain_trans_G7_onTransition);						
 			
 			// --------- POWERSAVE / send device to low power mode and wake up again --------------
 			
@@ -335,8 +371,260 @@
 			// stops playing - after which the normal H1 transition is used to 
 			// put device into low power state after a certain time...
 														
+		} // smMain_init_stateMachine()
+		
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// 6. long definition of all callback functions
+		
+		/* =========================================================== */
+		// called once at device startup
+		void smMain_state_init_onEnter(){
+			
+			// -------------------------------------------------------------------
+			// Setup Timers for PCM Output
+			// -------------------------------------------------------------------
+				//ludgerknorps ISR-debug
+				#if defined (ISR_BUFFER_DEBUG_PIN)
+					pinMode(ISR_BUFFER_DEBUG_PIN,OUTPUT);
+					setPinD0_D21(ISR_BUFFER_DEBUG_PIN);
+				#endif
+				#if defined (ISR_PCMFEED_DEBUG_PIN)
+					pinMode(ISR_PCMFEED_DEBUG_PIN,OUTPUT);
+					setPinD0_D21(ISR_PCMFEED_DEBUG_PIN);
+				#endif
+				
+				//Reset Timer/Counter Control Register A and B
+				TCCR1A = 0;
+				TCCR1B = 0;
+				
+				//Modus Phase+FrequCorrect PWM-Mode TOP = ICR1 (Mode 8), see [ATMEGA328 datasheet DS40002061A-page 141]
+				TCCR1A &= ~_BV(WGM10);
+				TCCR1A &= ~_BV(WGM11);
+				TCCR1B &= ~_BV(WGM12);
+				TCCR1B |=  _BV(WGM13);
+				
+				// TOP = ICR1 is set later by metadata read from PCM-file...
+				//~ ICR1 = ...;	
+				
+				//Timer1 prescaler: set to 1
+				TCCR1B &= ~_BV(CS12);
+				TCCR1B &= ~_BV(CS11);
+				TCCR1B |=  _BV(CS10);
+
+				//noninverting PWM-Signal for channels A and B
+				TCCR1A |=  _BV(COM1A1);
+				TCCR1A &= ~_BV(COM1A0);
+				TCCR1A |=  _BV(COM1B1);
+				TCCR1A &= ~_BV(COM1B0);
+			// End of Setup Timers for PCM Output
+			
+			// -------------------------------------------------------------------
+			// define and set PWM pins
+			// -------------------------------------------------------------------
+			
+				// PWM pins pair MSB=9 LSB=10, together 16bit PWM :-)
+				// configure both PWM-output pins (they are defined in .h file)
+				pinMode(AUDIO_PIN_OUT_HIGH,OUTPUT);
+				pinMode(AUDIO_PIN_OUT_LOW,OUTPUT);
+
+				#if defined (SD_FULLSPEED)
+					SPSR |= (1 << SPI2X);
+					SPCR &= ~((1 <<SPR1) | (1 << SPR0));
+				#endif
+				SD.begin(SD_ChipSelectPin)
 		}
+		
+		
+		/* =========================================================== */
+		void smMain_state_idle_onEnter(){
+			// tbd.
+				LKpcm::stopPlayback()
+		}
+		
+		/* =========================================================== */
+		void smMain_state_seek_onEnter(){
+			// tbd.
+				LKpcm::play(char* filename, unsigned long seekPoint)
+		}
+		
+		/* =========================================================== */
+		void smMain_state_seekBack_onEnter(){
+			// tbd.
+				LKpcm::play(char* filename, unsigned long seekPoint)
+		}
+		
+		
+		
+		
+		
+		/* =========================================================== */
+		void smMain_trans_B1_onTransition(){
+			// tbd.
+				LKpcm::play(char* filename)
+		}
+		
+		/* =========================================================== */
+		void smMain_trans_B2_onTransition(){
+			// tbd.
+				LKpcm::play(char* filename)
+		}
+		
+		/* =========================================================== */
+		void smMain_trans_B3_onTransition(){
+			// tbd.
+				LKpcm::play(char* filename)
+		}
+		
+		
+		/* =========================================================== */
+		void smMain_trans_D1_onTransition(){
+			// tbd.
+				LKpcm::pause()
+		}
+		
+		/* =========================================================== */
+		void smMain_trans_D2_onTransition(){
+			// tbd.
+				LKpcm::pause()
+		}
+		
+		
 	
+	
+		/* =========================================================== */
+		void smMain_trans_B1_onTransition(){
+			// tbd.
+				LKpcm::play(char* filename)
+		}
+		
+		
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+/* 
+ * Abschnitt Audio / PCM Player
+ */
+		
+		// User defined constants	
+			#define NUMBER_OF_PCM_BUFFERS 	4  	
+			// how many pcm buffers, do we use? 
+			// each can be max 256 bytes big (because it is addressed by a byte-type). 
+			// buffer size must be even number.
+			// all together must fit into RAM. 
+			// All buffers together form one big "semi-ring-buffer".
+			#define PCM_BUFFER_SIZE 		128  // must be even number (because of 16bit == 2 byte read at-a-time)	 
+		
+		
+		// lobal public functions (because of ISR we cannot put them easily into a class!)
+			bool isPlaying();
+			bool isPaused();
+			bool isStopped();
+			bool isInterupted();
+			bool isTwoByteSamples();
+			bool is16bit();
+			
+		//*********** Global Variables of PCM player ***************
+			volatile boolean buffEmpty[NUMBER_OF_PCM_BUFFERS];
+			volatile byte currentReadBuffer = 0;
+			volatile byte currentWriteBuffer = 0;
+
+			//*** Options from MSb to LSb: 7=paused, 6=stopped, 5=interupted, 4=playing, 3=N.N., 2=2-byte samples, 1=16-bit ***
+			volatile byte playerOptions = B00000000; 
+
+			volatile byte buffer[NUMBER_OF_PCM_BUFFERS][PCM_BUFFER_SIZE];
+			volatile byte buffCount = 0;
+			char volMod=0;
+			
+						
+			#if !defined (SDFAT)
+				File sFile;
+			#else
+				SdFile sFile;
+			#endif
+			
+		// Helper-functions (not used in ISR for performance!)
+		
+			// we want to 
+			// 1) use several helper-functions in order to clean up the code and
+			// 2) on the other side don't want to use function calls inside of ISR (wherever possible) because of performance impacts and
+			// 3) we do want to code behaviour only oncc.
+			// Thus - allthough is is not optimal coding style - we declare macros, use them inside of functions and inside ISR as well
+
+			#define ENABLE_BUFFER_INTERUPT			(TIMSK1 |= _BV(ICIE1))
+			#define DISABLE_BUFFER_INTERUPT			(TIMSK1 &= ~_BV(ICIE1))
+			#define ENABLE_PCM_FEED_INTERUPT		(TIMSK1 |= _BV(TOIE1))
+			#define DISABLE_PCM_FEED_INTERUPT		(TIMSK1 &= ~_BV(TOIE1))
+
+			void enableBufferInterupt(){
+				ENABLE_BUFFER_INTERUPT;
+			}
+			void disableBufferInterupt(){
+				DISABLE_BUFFER_INTERUPT;
+			}
+
+			void enablePCMFeedInterupt(){
+				ENABLE_PCM_FEED_INTERUPT;
+			}
+			void disablePCMFeedInterupt(){
+				DISABLE_PCM_FEED_INTERUPT;
+			}
+
+			bool isPaused(){
+				return bitRead(playerOptions,7);
+			}
+
+			bool isStopped(){
+				return bitRead(playerOptions,6);
+			}
+
+			bool isInterupted(){
+				return bitRead(playerOptions,7);
+			}
+			
+			bool isPlaying(){
+				return bitRead(playerOptions,4);
+			}
+
+			bool isTwoByteSamples() {
+				return bitRead(playerOptions,2);
+			}
+
+			bool is16bit() {
+				return bitRead(playerOptions,1);
+			}
+
+			void setPaused(bool bParam) {
+				bitWrite(playerOptions,7,bParam);
+			}
+
+			void setStopped(bool bParam) {
+				bitWrite(playerOptions,6,bParam);
+			}
+
+			void setInterupted(bool bParam) {
+				bitWrite(playerOptions,5,bParam);
+			}
+			
+			void setPlaying(bool bParam) {
+				bitWrite(playerOptions,4,bParam);
+			}
+
+			void setTwoByteSamples(bool bParam) {
+				bitWrite(playerOptions,2,bParam);
+			}
+
+			void set16bit(bool bParam) {
+				bitWrite(playerOptions,1,bParam);
+			}
+
 	
 // ####################################################################################
 // ####################################################################################
