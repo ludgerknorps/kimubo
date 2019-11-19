@@ -1,3 +1,78 @@
+/* 
+ * KIMUBO
+ * KInderMUsikBOx
+ * 
+ * Ein minimalistischer WAV/PCM Spieler für Kinder - und mehr.
+ * 
+ * (c) 2019 ludgerknorps <56650955+ludgerknorps@users.noreply.github.com>
+ * 
+ *  This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program. See file "LICENSE". 
+ *   If not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
+ 
+
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+/* 
+ * Abschnitt fast (!) replacements for digitalWrite() and digitalRead()
+ */
+	
+	// ludgerknorps stuff
+	// fast (!) replacements for digitalWrite() and digitalRead() - about 20x faster than digitalWrite().
+	// see https://www.best-microcontroller-projects.com/arduino-digitalwrite.html for more explanation
+	// use as in 
+	// 			setPinD0_D7(5)			--> set Pin D5  aka. PORTD.5 = HIGH
+	//			clrPinD8_D13(12)		--> clear Pin D12 aka. PORTB.5 = LOW
+	// 			readPinA0_A7(5)			--> read Pin A5  aka. PORTC.5 
+	//			writePinD0_D7(5,LOW)	--> clear Pin D5  aka. PORTD.5 = LOW 
+		#define setPinD0_D7(pinNo) 		( PORTD |=(1<<(pinNo)) )
+		#define setPinD8_D13(pinNo) 	( PORTB |=(1<<(pinNo-8)) )
+		#define setPinA0_A7(pinNo) 		( PORTC |=(1<<(pinNo)) )
+		#define setPinD14_D21(pinNo) 	( setPinA0_A7(pinNo-13) )
+
+		#define clrPinD0_D7(pinNo) 		( PORTD &=~(1<<(pinNo)) )
+		#define clrPinD8_D13(pinNo) 	( PORTB &=~(1<<(pinNo-8)) )
+		#define clrPinA0_A7(pinNo) 		( PORTC &=~(1<<(pinNo)) )
+		#define clrPinD14_D21(pinNo) 	( clrPinA0_A7(pinNo-13) )
+
+		// more comfortable but slightly slower 
+		#define writePinD0_D7(pinNo, boolValue) 	( (boolValue && setPinD0_D7(pinNo))  || clrPinD0_D7(pinNo) )
+		#define writePinD8_D13(pinNo, boolValue) 	( (boolValue && setPinD8_D13(pinNo)) || clrPinDD8_D13(pinNo) )
+		#define writePinA0_A7(pinNo, boolValue) 	( (boolValue && setPinA0_A7(pinNo))  || clrPinA0_A7(pinNo) )
+		
+		// more comfortable but even more (slightly) slower 
+		#define setPinD0_D21(pinNo) 				( ((pinNo)>13) ? setPinA0_A7(pinNo-13) : ( (pinNo)>8 ? setPinD8_D13(pinNo-8) : setPinD0_D7(pinNo) ) )
+		#define clrPinD0_D21(pinNo) 				( ((pinNo)>13) ? clrPinA0_A7(pinNo-13) : ( (pinNo)>8 ? clrPinD8_D13(pinNo-8) : clrPinD0_D7(pinNo) ) )
+		#define writePinD0_D21(pinNo, boolValue) 	( (boolValue && setPinD0_D21(pinNo))  || clrPinD0_D21(pinNo) )
+		
+		// sometimes reading is better than writing...
+		#define readPinD0_D7(pinNo) 	( (PORTD &(1<<(pinNo)))!=0 )
+		#define readPinD8_D13(pinNo) 	( (PORTB &(1<<(pinNo-8)))!=0 )
+		#define readPinA0_A7(pinNo) 	( (PORTD &(1<<(pinNo)))!=0 )
+
+
+
+
+
 
 /* 
  * Abschnitt Audio / PCM Player
@@ -121,6 +196,10 @@
 
 		long gv_UBat_ChipsVccCompensationValue;
 		long gv_UBat_in_millivolt; 
+
+
+
+
 
 
 
