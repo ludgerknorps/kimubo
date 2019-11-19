@@ -99,21 +99,6 @@
 				//#define ISR_BUFFER_DEBUG_PIN 	4
 				//#define ISR_PCMFEED_DEBUG_PIN	6
 
-
-
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	// ####################################################################################
-	/* 
-	 * Abschnitt HW/Schaltungsbeschreibung
-	 */
-	 
 	 
 	// ####################################################################################
 	// ####################################################################################
@@ -127,6 +112,8 @@
 	/* 
 	 * Abschnitt EEPROM
 	 */
+	 
+		
 
 		/* EEPROM Data Layout:
 		 *  EEPROM_BASE_ADDR 
@@ -159,6 +146,12 @@
 		static const byte EEPROM_BASE_ADDR      		= 	0	; // this one should not be used directly in code, instead use specific addresses form below
 																  // can be set to any value between 0 and "real_eeprom_size" - all bytes used (currently 59)
 																  // therefore for ATMEGA328P with 1024byte EEPROM: between 0 .. 964
+																  // BEWARE:
+																  // we have 1024 bytes of EEPROM on the ATmega328P --> addresses in EEPROM need to be of type "short", 
+																  // if we need to address whole EEPROM space.
+																  // As we only need a subset of the address-space we can use byte type instead for addresses, 
+																  // iff (!) we limit base address + max needed space (= upper limit of used space)
+																  // to bee 255 or less.
 		
 		static const byte EEPROM_VCCCOMPENSATION_ADDR	=	EEPROM_BASE_ADDR + 0; // four bytes used
 		
