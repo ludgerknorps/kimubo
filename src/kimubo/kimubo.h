@@ -45,7 +45,7 @@
 
 
 
-		#include <Arduino.h>
+#include <Arduino.h>
 	
 	
 
@@ -91,14 +91,17 @@
 			#define PCM_BUFFER_SIZE 		128  // must be even number (because of 16bit == 2 byte read at-a-time)	 
 		
 		
+			static const unsigned int 	PCM_SAMPLE_RATE	= 24000;
+			//~ static const unsigned int 	PCM_SAMPLE_RATE	= 32000;	// we aim to reach that in later sprint... (only possible with F_CPU == 20MHz!)
+		
 
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// Pins
 			// pins are Arduino pin nr.	
-			static const byte AUDIO_PIN_OUT_HIGH		= 9; 
-			static const byte AUDIO_PIN_OUT_LOW			= 10; 
+			#define AUDIO_PIN_OUT_HIGH		9 
+			#define AUDIO_PIN_OUT_LOW		10
 			
 			
 		//ludgerknorps debug: wie viele Microsekunden zwischen PWM Interupt Aufrufen

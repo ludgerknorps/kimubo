@@ -22,3 +22,8 @@
  * 
  */
  
+void sdc_setup(){
+	// 
+	SPSR |= (1 << SPI2X);
+	SPCR &= ~((1 <<SPR1) | (1 << SPR0));
+}

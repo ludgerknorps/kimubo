@@ -37,21 +37,21 @@
  */
 	
 	// ludgerknorps stuff
-	// fast (!) replacements for digitalWrite() and digitalRead() - about 20x faster than digitalWrite().
-	// see https://www.best-microcontroller-projects.com/arduino-digitalwrite.html for more explanation
+	// fast (!) replacements for digitalWrite() and digitalRead() - about 10x faster than digitalWrite().
+	// (for general information see https://www.best-microcontroller-projects.com/arduino-digitalwrite.html for more explanation)
 	// use as in 
 	// 			setPinD0_D7(5)			--> set Pin D5  aka. PORTD.5 = HIGH
 	//			clrPinD8_D13(12)		--> clear Pin D12 aka. PORTB.5 = LOW
 	// 			readPinA0_A7(5)			--> read Pin A5  aka. PORTC.5 
 	//			writePinD0_D7(5,LOW)	--> clear Pin D5  aka. PORTD.5 = LOW 
-		#define setPinD0_D7(pinNo) 		( PORTD |=(1<<(pinNo)) )
-		#define setPinD8_D13(pinNo) 	( PORTB |=(1<<(pinNo-8)) )
-		#define setPinA0_A7(pinNo) 		( PORTC |=(1<<(pinNo)) )
+		#define setPinD0_D7(pinNo) 		( PORTD |= (1<<(pinNo)) )
+		#define setPinD8_D13(pinNo) 	( PORTB |= (1<<(pinNo-8)) )
+		#define setPinA0_A7(pinNo) 		( PORTC |= (1<<(pinNo)) )
 		#define setPinD14_D21(pinNo) 	( setPinA0_A7(pinNo-13) )
 
-		#define clrPinD0_D7(pinNo) 		( PORTD &=~(1<<(pinNo)) )
-		#define clrPinD8_D13(pinNo) 	( PORTB &=~(1<<(pinNo-8)) )
-		#define clrPinA0_A7(pinNo) 		( PORTC &=~(1<<(pinNo)) )
+		#define clrPinD0_D7(pinNo) 		( PORTD &= ~(1<<(pinNo)) )
+		#define clrPinD8_D13(pinNo) 	( PORTB &= ~(1<<(pinNo-8)) )
+		#define clrPinA0_A7(pinNo) 		( PORTC &= ~(1<<(pinNo)) )
 		#define clrPinD14_D21(pinNo) 	( clrPinA0_A7(pinNo-13) )
 
 		// more comfortable but slightly slower 
@@ -65,46 +65,70 @@
 		#define writePinD0_D21(pinNo, boolValue) 	( (boolValue && setPinD0_D21(pinNo))  || clrPinD0_D21(pinNo) )
 		
 		// sometimes reading is better than writing...
-		#define readPinD0_D7(pinNo) 	( (PORTD &(1<<(pinNo)))!=0 )
-		#define readPinD8_D13(pinNo) 	( (PORTB &(1<<(pinNo-8)))!=0 )
-		#define readPinA0_A7(pinNo) 	( (PORTD &(1<<(pinNo)))!=0 )
+		#define readPinD0_D7(pinNo) 	( PORTD >> pinNo) & 1 )
+		#define readPinD8_D13(pinNo) 	( PORTB >> (pinNo-8) & 1 )
+		#define readPinA0_A7(pinNo) 	( PORTC >> pinNo) & 1 )
 
 
 
 
 
-
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
 /* 
  * Abschnitt Audio / PCM Player
  */
 
 
 		// global public functions (because of ISR we cannot put them easily into a class!)
-			bool isPlaying();
-			bool isPaused();
-			bool isStopped();
-			bool isInterupted();
-			bool isTwoByteSamples();
-			bool is16bit();
+			
 			
 		//*********** Global Variables of PCM player ***************
-			volatile boolean buffEmpty[NUMBER_OF_PCM_BUFFERS];
-			volatile byte currentReadBuffer = 0;
-			volatile byte currentWriteBuffer = 0;
+			volatile boolean player_bufferEmpty[NUMBER_OF_PCM_BUFFERS];
+			volatile byte player_currentReadBuffer = 0;
+			volatile byte player_currentWriteBuffer = 0;
 
 			//*** Options from MSb to LSb: 7=paused, 6=stopped, 5=interupted, 4=playing, 3=N.N., 2=2-byte samples, 1=16-bit ***
-			volatile byte playerOptions = B00000000; 
+			volatile byte player_Options = B00000000; 
 
-			volatile byte buffer[NUMBER_OF_PCM_BUFFERS][PCM_BUFFER_SIZE];
-			volatile byte buffCount = 0;
-			char volMod=0;
+			volatile byte player_buffer[NUMBER_OF_PCM_BUFFERS][PCM_BUFFER_SIZE];
+			volatile byte player_bufferCount = 0;
+			signed char player_SWvolume = 0; // char as we want to have signed 8bit
 			
-						
-			#if !defined (SDFAT)
-				File sFile;
-			#else
-				SdFile sFile;
-			#endif
+		//************ functions of PCM player ***************	
+		// (because of ISR we cannot put them easily into a class!)
+			void player_play(char* filename);
+			void player_play(char* filename, unsigned long seekPoint);
+			void player_stop();
+			void player_pause();
+			
+			// set Volume goes from 0 .. 8 with 4 being default (= interprets the pcm data without  amplification or reduction)
+			void player_setVolume(byte vol);
+			
+			bool player_isPlaying();
+			bool player_isPaused();
+			bool player_isStopped();
+			bool player_isInterupted();
+			bool player_isTwoByteSamples();
+			bool player_is16bit();
+			
+			void player_setupPWMPins();
+
+			bool player_wavInfo(char* filename);
+			unsigned int player_SAMPLE_RATE;
+
+			
+	
+	
+	//ludgerknorps debug: wie viele Microsekunden zwischen PWM Interupt Aufrufen
+	//void player_sendRecordedMicros();
 			
 		// Helper-functions (not used in ISR for performance!)
 		
@@ -119,74 +143,16 @@
 			#define ENABLE_PCM_FEED_INTERUPT		(TIMSK1 |= _BV(TOIE1))
 			#define DISABLE_PCM_FEED_INTERUPT		(TIMSK1 &= ~_BV(TOIE1))
 
-			void enableBufferInterupt(){
-				ENABLE_BUFFER_INTERUPT;
-			}
-			void disableBufferInterupt(){
-				DISABLE_BUFFER_INTERUPT;
-			}
 
-			void enablePCMFeedInterupt(){
-				ENABLE_PCM_FEED_INTERUPT;
-			}
-			void disablePCMFeedInterupt(){
-				DISABLE_PCM_FEED_INTERUPT;
-			}
-
-			bool isPaused(){
-				return bitRead(playerOptions,7);
-			}
-
-			bool isStopped(){
-				return bitRead(playerOptions,6);
-			}
-
-			bool isInterupted(){
-				return bitRead(playerOptions,7);
-			}
-			
-			bool isPlaying(){
-				return bitRead(playerOptions,4);
-			}
-
-			bool isTwoByteSamples() {
-				return bitRead(playerOptions,2);
-			}
-
-			bool is16bit() {
-				return bitRead(playerOptions,1);
-			}
-
-			void setPaused(bool bParam) {
-				bitWrite(playerOptions,7,bParam);
-			}
-
-			void setStopped(bool bParam) {
-				bitWrite(playerOptions,6,bParam);
-			}
-
-			void setInterupted(bool bParam) {
-				bitWrite(playerOptions,5,bParam);
-			}
-			
-			void setPlaying(bool bParam) {
-				bitWrite(playerOptions,4,bParam);
-			}
-
-			void setTwoByteSamples(bool bParam) {
-				bitWrite(playerOptions,2,bParam);
-			}
-
-			void set16bit(bool bParam) {
-				bitWrite(playerOptions,1,bParam);
-			}
-
-
-
-
-
-
-
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
 /* 
  * Abschnitt UBat measurement
  */
@@ -198,7 +164,27 @@
 		long gv_UBat_in_millivolt; 
 
 
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+/* 
+ * Abschnitt SD Card
+ */
 
+		#if defined (SDFAT)
+			SdFile sdc_File;
+		#else
+			File sdc_File;
+		#endif
+
+
+		void sdc_setup()
 
 
 
