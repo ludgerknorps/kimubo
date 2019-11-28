@@ -93,7 +93,8 @@
       static char player_current_playlist_dirname;
       static byte player_current_track;
       // in each playlist/dir we have files 0.WAV, 1.WAV, ..., 10.WAV, 11.WAV, ..., 100.WAV, 101.WAV, ... 254.WAV (that is the maximum! 255 is "no-value") Thus length of this string is at most SUFFIX_PCM_FILES + 3
-      static char player_current_track_filename[strlen(SUFFIX_PCM_FILES) + 3];
+      // additionally: 1 char each for leading and separating "/" and the dirname 
+      static char player_current_track_filename[strlen(SUFFIX_PCM_FILES) + 3 + 1 + 1 + 1];
       
 
       // we also have to memorize:
@@ -120,6 +121,9 @@
 			// writing is doneblock-wise in blocks of PCM_BUFFER_SIZE, but reading is done byte-wise (or double-byte-wise in case of 16bit PCM)
 			// thus, we need a position-"pointer" (array-index) for intra-buffer
 			volatile byte readPositionInBuffer = 0;
+
+      // petitfs delivers how many bytes were read into a variable
+      volatile unsigned int player_bytesFromSDC = 0;
 
 			bool player_is16bit = false;
 			bool player_isPaused = false;
@@ -205,11 +209,9 @@
  * Abschnitt SD Card
  */
     
-    // SDFAT
+    // PetitFS
     // File system object.
-        SdFatEX sdc_fileSystem;
-        SdBaseFile sdc_Dir;
-        SdBaseFile sdc_File;
+        FATFS sdc_fileSystem;
 
     // functions
 		bool sdc_setup();

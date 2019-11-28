@@ -22,8 +22,6 @@
  * 
  */
  
-#include <SPI.h>
-#include <SdFat.h>
 
 
 
@@ -38,6 +36,15 @@
 
 #include "local.lib/arduino-fsm/Fsm.h"
 #include "local.lib/arduino-fsm/Fsm.cpp"
+
+#include "local.lib/PetitFS/src/PetitFS.h"
+#include "local.lib/PetitFS/src/avr_mmcp.cpp"
+#include "local.lib/PetitFS/src/diskio.h"
+#include "local.lib/PetitFS/src/integer.h"
+#include "local.lib/PetitFS/src/pff.cpp"
+#include "local.lib/PetitFS/src/pff.h"
+#include "local.lib/PetitFS/src/pffArduino.h"
+#include "local.lib/PetitFS/src/pffconf.h"
 
 // wir verwenden das Arduino Pro Mini interne EEPROM zum speichern von Einstellungen
 #include <EEPROM.h>

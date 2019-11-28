@@ -46,11 +46,18 @@ bool player_setup(){
 // calculates the new track's filename
 void get_new_track_player_filename(){
 
+    char temp_filename[sizeof(player_current_track_filename)];
+
     if ( player_current_track == 255 ){
         strcpy(player_current_track_filename, " "); // default
     } else {
-        itoa(player_current_track, player_current_track_filename, 10); // 10 = convert using decimal system
-        strcat(player_current_track_filename, SUFFIX_PCM_FILES);
+        itoa(player_current_track, temp_filename, 10); // 10 = convert using decimal system
+        strcat(temp_filename, SUFFIX_PCM_FILES);
+        
+        strcpy(player_current_track_filename, "/");
+        strcat(player_current_track_filename, player_current_playlist_dirname);
+        strcat(player_current_track_filename, "/");
+        strcat(player_current_track_filename, temp_filename);
     }
       
 }
@@ -155,13 +162,6 @@ bool player_openFile(char* filename){
 	// reset buffers to defined starting conditions	
 	player_stop();
 	
-	// check: is File closed?
-	if( sdc_File.isOpen() ){ 
-		#if defined (debug)
-			Serial.println(F("WAV ERROR previous file still open"));
-		#endif
-		return false;
-	}
 	
 	// check that WAV file is valid and PCM data in it is correctly encoded
 	if( ! player_checkWAVFile(filename)){
@@ -178,26 +178,48 @@ bool player_openFile(char* filename){
 bool player_checkWAVFile(char* filename){
 	
 	unsigned int i;
+  FRESULT result;
 
 	//check for the string WAVE starting at 8th bit in header of file
 
-  sdc_File.open(filename);
+  result = pf_open(filename);
+
+  switch ( result ) {
+
+      case FR_OK:
+          // do nothing
+          break;
+      case FR_NO_FILE:
+          #if defined (debug)
+              Serial.print(F("WAV ERROR FR_NO_FILE "));
+              Serial.println(filename);
+          #endif
+          return 0;
+      case FR_DISK_ERR:
+          #if defined (debug)
+              Serial.print(F("WAV ERROR FR_DISK_ERR "));
+              Serial.println(filename);
+          #endif
+          return 0;
+      case FR_NOT_ENABLED:
+          #if defined (debug)
+              Serial.print(F("WAV ERROR FR_NOT_ENABLED "));
+              Serial.println(filename);
+          #endif
+          return 0;
+  }
 
 	#if defined (debug)
 		Serial.print(F("FILENAME: "));
 		Serial.println(filename);
 	#endif
 
-	// first check: can I open the file at all?
-	if( ! sdc_File.isOpen() ){ 
-		return 0;
-	}
-	sdc_File.seekSet(8);
+	pf_lseek(8);
 	
 	// second check: correct WAVE identifier?
 	char wavIdentifier[] = {'W','A','V','E'};
 	for (i = 0; i < 4; i++){
-		if(sdc_File.read() != wavIdentifier[i]){
+		if( pf_read(0, 1, &player_bytesFromSDC) != wavIdentifier[i]){
 			#if defined (debug)
 				Serial.println(F("WAV ERROR INCORRECT IDENTIFIER"));
 			#endif
@@ -206,8 +228,8 @@ bool player_checkWAVFile(char* filename){
 	}
 
 	// third check: file must be mono (no stereo allowed!)
-	sdc_File.seekSet(22);
-	if (sdc_File.read() != '1'){
+	pf_lseek(22);
+	if (pf_read(0, 1, &player_bytesFromSDC) != '1'){
 		#if defined (debug)
 			Serial.println(F("WAV ERROR STEREO"));
 		#endif
@@ -216,8 +238,8 @@ bool player_checkWAVFile(char* filename){
 	
 	// fourth check: sample rate must match user defined value, see header file...
 	// we need to read two bytes, as sample rate is type unsigned integer
-	sdc_File.seekSet(24);
-	i = sdc_File.read()	| ( sdc_File.read() << 8 ); // first byte read is the LSB, second byte is the HSB
+	pf_lseek(24);
+	i = pf_read(0, 1, &player_bytesFromSDC)	| ( pf_read(0, 1, &player_bytesFromSDC) << 8 ); // first byte read is the LSB, second byte is the HSB
 	if ( i != PCM_SAMPLE_RATE ){
 		#if defined (debug)
 			Serial.print(F("WAV ERROR SAMPLE_RATE = "));
@@ -228,8 +250,8 @@ bool player_checkWAVFile(char* filename){
 	
 	// fifth check: bits per sample must be 8 or 16	
 	// we need to read two bytes, as bitspersample is type unsigned integer in WAV file
-	sdc_File.seekSet(34);
-	i = sdc_File.read() | ( sdc_File.read() << 8 ); // first byte read is the LSB, second byte is the HSB
+	pf_lseek(34);
+	i = pf_read(0, 1, &player_bytesFromSDC) | ( pf_read(0, 1, &player_bytesFromSDC) << 8 ); // first byte read is the LSB, second byte is the HSB
 	if (i == 16){
 		player_is16bit = true;
 	}else if (i == 8){ 
@@ -243,7 +265,7 @@ bool player_checkWAVFile(char* filename){
 	}
 
 	// ok, if we came to here, file seems to be in order...	
-	sdc_File.seekSet(44); // goto start of PCM-data in WAV file
+	pf_lseek(44); // goto start of PCM-data in WAV file
 	return 1;
 
 }
@@ -267,8 +289,12 @@ void player_play(char* filename, unsigned long seekPoint){
 
 	// after player_checkWAVFile the sdc_File.curPosition() currently is 44, so take that into account when calculating seek position
 	if(seekPoint > 0){ 
-		seekPoint = (PCM_SAMPLE_RATE*seekPoint) + sdc_File.curPosition();
-		sdc_File.seekSet(seekPoint);
+		if ( player_is16bit ) {
+        seekPoint = (2*PCM_SAMPLE_RATE*seekPoint) + 44;
+		} else {
+        seekPoint = (PCM_SAMPLE_RATE*seekPoint) + 44;
+		}
+		pf_lseek(seekPoint);
 	}
 
 	player_isStopped = false;
@@ -283,7 +309,11 @@ void player_play(char* filename, unsigned long seekPoint){
 	#endif
 
 	// fill one buffer with data from sdc, other buffers will be filled by ISR "BufferInterupt"
-	sdc_File.read( (byte*)player_buffer[player_currentWriteBuffer] , PCM_BUFFER_SIZE );
+	// block-read from SDcard
+  pf_read( (byte*)player_buffer[player_currentWriteBuffer] , PCM_BUFFER_SIZE, &player_bytesFromSDC );
+
+  // if buffer is not fully filled (i.e. pf_read reached EOF) then playing will be stopped by ISR
+  
 	player_bufferEmpty[player_currentWriteBuffer] = false;
 	// goto next buffer (or "roll over" to first buffer, if we were at the last one
 	// should not be necessary here because of clean starting setup for buffers at player_openFile()...
@@ -293,7 +323,7 @@ void player_play(char* filename, unsigned long seekPoint){
 		player_currentWriteBuffer = 0;
 	}
 
-    readPositionInBuffer = 0;
+  readPositionInBuffer = 0;
   noInterrupts();
 
 	ENABLE_BUFFER_INTERUPT;
@@ -320,9 +350,7 @@ void player_stop(){
 	DISABLE_PCM_FEED_INTERUPT; // do that first before deactivating BufferInterupt
 	DISABLE_BUFFER_INTERUPT;
 
-	if (sdc_File.isOpen()){ 
-		sdc_File.close(); 
-	}
+  // we don't need to explicitely close the open file, it will be discarded on next file_open...
 	
 	// reset/clear buffers into a well-definied setup
 	player_setupBuffers();
@@ -450,20 +478,20 @@ ISR(TIMER1_CAPT_vect){
 		// but allow others
 		sei();
 
-		// stop playback if less then one buffer is left in file
-		if( sdc_File.available() < PCM_BUFFER_SIZE){
-			// hold "player-interupt"
-			DISABLE_PCM_FEED_INTERUPT;			 
+    // block-read from SDcard
+    pf_read( (byte*)player_buffer[player_currentWriteBuffer] , PCM_BUFFER_SIZE, &player_bytesFromSDC );
+
+		// stop playback and discard this buffer, if it is not fully filled (i.e. pf_read reached EOF)
+		if( player_bytesFromSDC < PCM_BUFFER_SIZE){
+  			// hold "player-interupt"
+  			DISABLE_PCM_FEED_INTERUPT;			 
 		  	player_isPlaying = false; 	
 		  	//
 		  	//		  	
 		  	// TBD. here we need to trigger an fsm action!!!
 		  	//
 		  	//	
-	  	} else {
-			// block-read from SDcard
-			sdc_File.read( (byte*)player_buffer[player_currentWriteBuffer] , PCM_BUFFER_SIZE );
-			
+  	} else {
 			player_bufferEmpty[player_currentWriteBuffer] = false;
 			// goto next buffer (or "roll over" to first buffer, if we were at the last one
 			if (player_currentWriteBuffer < NUMBER_OF_PCM_BUFFERS - 1 ) { 

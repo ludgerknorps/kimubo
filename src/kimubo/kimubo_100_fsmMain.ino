@@ -403,32 +403,39 @@
         #endif
 
         // goto right dir on sdc
-        // open file 0, e.g. "0.WAV" depending on SUFFIX_PCM_FILES
+        // open first file e.g. "0.WAV"
         // start playing at begin of file 0
-        
-        // remember current playlist
-        player_current_playlist_dirname = keyb_current_playListKey;
-        // goto according dir
-        if ( sdc_fileSystem.chdir(player_current_playlist_dirname) ){
-            #if defined (debug)
-              Serial.print(F("smMain TRANSITION B1 chdir to "));
-              Serial.println(player_current_playlist_dirname);
-            #endif
 
-            // begin with track 0
-            player_current_track = 0;
+        if ( player_track_number_min[atoi(keyb_current_playListKey)] != 255) {
+            // there are files in this dir
+            
+            // remember current playlist
+            player_current_playlist_dirname = keyb_current_playListKey;
+
+            // begin with first track 
+            player_current_track = player_track_number_min[atoi(player_current_playlist_dirname)];
+
             get_new_track_player_filename;
-            if (sdc_fileSystem.exists(player_current_track_filename)){
+            if ( pf_open(player_current_track_filename) == FR_OK ){
                 player_play(player_current_track_filename);
+                #if defined (debug)
+                    Serial.print(F("smMain TRANSITION B1 INFO playing playlist/file "));
+                    Serial.println(player_current_track_filename);   
+                #endif
             } else {
-                player_stop(); // there is no first file in dir --> ok it might be empty, i.e. no playlist stored there...
+                player_stop(); // cannot open file?!
+                #if defined (debug)
+                    Serial.print(F("smMain TRANSITION B1 ERROR cannot open file? "));
+                    Serial.println(player_current_track_filename);   
+                #endif
             }
         } else {
+            // no file in dir --> do nothing, as player is not playing it will immediatly go back to idle.
             #if defined (debug)
-              Serial.print(F("smMain TRANSITION B1 ERROR! cannot chdir to "));
-              Serial.println(player_current_playlist_dirname);   
+                Serial.print(F("smMain TRANSITION B1 INFO a playlist without files was selected "));
+                Serial.println(player_current_playlist_dirname);   
             #endif
-        }      
+        };    
 		}
 		
 		/* =========================================================== */
@@ -437,12 +444,23 @@
           Serial.println(F("smMain TRANSITION B2"));
         #endif
         // select next track (stay in same dir/playlist)
-        player_current_track++;
-        get_new_track_player_filename;
-        if (sdc_fileSystem.exists(player_current_track_filename)){
-            player_play(player_current_track_filename);
+        if ( player_current_track == player_track_number_max[atoi(player_current_playlist_dirname)] ){
+            player_stop(); // there is no further file in this dir
+            #if defined (debug)
+                Serial.print(F("smMain TRANSITION B2 INFO player stopped after last file in dir "));
+                Serial.println(player_current_track_filename);   
+            #endif
         } else {
-            player_stop(); // there is no first file in dir --> ok it might be empty, i.e. no playlist stored there...
+            // ok, there IS another file, but it need not be the sequential next one...
+            do {
+                player_current_track++;
+                get_new_track_player_filename;
+            } while (pf_open(player_current_track_filename) != FR_OK);
+            player_play(player_current_track_filename);
+            #if defined (debug)
+                Serial.print(F("smMain TRANSITION B2 INFO playing playlist/file "));
+                Serial.println(player_current_track_filename);   
+            #endif 
         }
 		}
 		
@@ -452,7 +470,7 @@
           Serial.println(F("smMain TRANSITION B3"));
         #endif
         // goto right dir on sdc
-        // open file 0, e.g. "0.WAV" depending on SUFFIX_PCM_FILES
+        // open first file e.g. "0.WAV" 
         // start playing at begin of file 0
 
         // difference to transition B1 (idle -> play):
@@ -460,35 +478,29 @@
         
         // only do something, if the pressed key is not belonging to currently played playlist
         if ( keyb_current_playListKey != player_current_playlist_dirname ){
-        
-            // goto according dir (we do not yet remember the new playlist as "current" one, as we do not know whether there are some files in this dir or not)
-            if ( sdc_fileSystem.chdir(keyb_current_playListKey) ){
-                #if defined (debug)
-                  Serial.print(F("smMain TRANSITION B3 chdir to "));
-                  Serial.println(player_current_playlist_dirname);
-                #endif
-                // remember track that is playing right now
-                byte tempPreviousTrack = player_current_track;
-                
-                // begin with track 0
-                player_current_track = 0;
-                get_new_track_player_filename;
-                if (sdc_fileSystem.exists(player_current_track_filename)){
-                    // NOW remember current playlist
-                    player_current_playlist_dirname = keyb_current_playListKey;
-                    player_play(player_current_track_filename);
-                } else {
-                    // there is no first file in dir --> just continue playing the file that is already being played...
-                    sdc_fileSystem.chdir(player_current_playlist_dirname);
-                    player_current_track = tempPreviousTrack;
-                    get_new_track_player_filename;
-                }
-            } else {
-                #if defined (debug)
-                  Serial.print(F("smMain TRANSITION B3 ERROR! cannot chdir to "));
-                  Serial.println(player_current_playlist_dirname);   
-                #endif
-            }
+
+             if ( player_track_number_min[atoi(keyb_current_playListKey)] != 255) {
+                  // there are files in this dir
+                  
+                  // remember current playlist
+                  player_current_playlist_dirname = keyb_current_playListKey;
+      
+                  // begin with first track 
+                  player_current_track = player_track_number_min[atoi(player_current_playlist_dirname)];
+      
+                  get_new_track_player_filename;
+                  if ( pf_open(player_current_track_filename) == FR_OK ){
+                      player_play(player_current_track_filename);
+                  } else {
+                      player_stop(); // cannot open file?!
+                  }
+              } else {
+                  // no file in dir --> do nothing, player keeps playing previous playlist/track
+                  #if defined (debug)
+                      Serial.print(F("smMain TRANSITION B3 INFO a playlist without files was selected "));
+                      Serial.println(player_current_playlist_dirname);   
+                  #endif
+              } 
         } else {
             // we do nothing, just write debug
             #if defined (debug)
@@ -521,20 +533,26 @@
           Serial.println(F("smMain TRANSITION E1"));
         #endif
         // select next track (stay in same dir/playlist)
-        // is user wants to skip tracks by pressing forward or backward keys, we handle the "cornercases" as follows:
-        // a) first track in playlist and user again presses skipBack --> stay in track 0 and restart track 0 at position 0
-        // b) last track in playlist and user again presses skip --> do nothing
-
-// TBD TBD: use player_track_number_max for comparison!
-        
-        player_current_track++;
-        get_new_track_player_filename;
-        if (sdc_fileSystem.exists(player_current_track_filename)){
-            player_play(player_current_track_filename);
+        if ( player_current_track == player_track_number_max[atoi(player_current_playlist_dirname)] ){
+            // there is no further file in this dir
+            // do nothing, just continue playing this last track 
+            // here E1 differs from B2!
+            #if defined (debug)
+                Serial.print(F("smMain TRANSITION E1 INFO skip requested but already last file in dir "));
+                Serial.println(player_current_track_filename);   
+            #endif
         } else {
-            player_stop(); // there is no first file in dir --> ok it might be empty, i.e. no playlist stored there...
+            // ok, there IS another file, but it need not be the sequential next one...
+            do {
+                player_current_track++;
+                get_new_track_player_filename;
+            } while (pf_open(player_current_track_filename) != FR_OK);
+            player_play(player_current_track_filename);
+            #if defined (debug)
+                Serial.print(F("smMain TRANSITION E1 INFO playing playlist/file "));
+                Serial.println(player_current_track_filename);   
+            #endif 
         }
-        // as there is no file " " if player_current_track rolls over from 254 to 255, the player stops
     }
     
     /* =========================================================== */
@@ -542,15 +560,40 @@
         #if defined (debug)
           Serial.println(F("smMain TRANSITION E2"));
         #endif
-        // select next track (stay in same dir/playlist)
-        player_current_track--;
-        get_new_track_player_filename;
-        if (sdc_fileSystem.exists(player_current_track_filename)){
+        // select previous track (stay in same dir/playlist)
+        // or go back to begin of current track, if playtime < 1sek.
+
+        if (  sdc_fileSystem.fptr <= ( (player_is16bit ? 2 : 1) * PCM_SAMPLE_RATE) ) {
+            // go back to begin of current track
             player_play(player_current_track_filename);
+            #if defined (debug)
+                Serial.print(F("smMain TRANSITION E2 INFO skipback requested at begin of a track --> go back to begin of current track "));
+                Serial.println(player_current_track_filename);   
+            #endif
         } else {
-            player_stop(); // there is no first file in dir --> ok it might be empty, i.e. no playlist stored there...
+            if ( player_current_track == player_track_number_min[atoi(player_current_playlist_dirname)] ){
+                // there is no previous file in this dir
+                // skip back to beginning of this first track
+                player_play(player_current_track_filename);
+                #if defined (debug)
+                    Serial.print(F("smMain TRANSITION E2 INFO skipback requested at first track in playlist --> go back to begin of this first track "));
+                    Serial.println(player_current_track_filename);   
+                #endif
+            } else {
+                // ok, there IS a privious file, but it need not be the sequential next one...
+                do {
+                    player_current_track--;
+                    get_new_track_player_filename;
+                } while (pf_open(player_current_track_filename) != FR_OK);
+                player_play(player_current_track_filename);
+                #if defined (debug)
+                    Serial.print(F("smMain TRANSITION E2 INFO playing playlist/file "));
+                    Serial.println(player_current_track_filename);   
+                #endif 
+                
+            }
         }
-        // as there is no file " " if player_current_track rolls over from 0 to 255, the player stops
+        
     }
 
     /* =========================================================== */

@@ -131,7 +131,7 @@
 			// buffer size must be even number.
 			// all together must fit into RAM. 
 			// All buffers together form one big "semi-ring-buffer".
-			#define PCM_BUFFER_SIZE 		    128  // must be even number (because of 16bit == 2 byte read at-a-time)	 
+			#define PCM_BUFFER_SIZE 		    256  // must be even number (because of 16bit == 2 byte read at-a-time)	 
 		
 		
 			static const unsigned int 	PCM_SAMPLE_RATE	= 24000;
@@ -428,13 +428,7 @@
       // relevant for "normal" PCM files as well as message-files.
       const char SDC_SYSTEM_MESSAGES_DIR[] = "system";
 
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		// Test with reduced SPI speed for breadboards.  SD_SCK_MHZ(4) will select
-		// the highest speed supported by the board that is not over 4 MHz.
-		// Change SDC_SPI_SPEED to SD_SCK_MHZ(50) for best performance.
-			#define SDC_SPI_SPEED     SD_SCK_MHZ(50)
+
 			
 
 
