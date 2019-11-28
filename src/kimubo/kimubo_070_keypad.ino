@@ -36,6 +36,8 @@
 /* 
  * Abschnitt MatrixKeyboard
  */
+
+   typedef char KeypadEvent;
  
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -45,7 +47,8 @@
 		static bool keybIsMoreThanOneKeyPressed = false; // true, if more than one key is pressed - we don't want multikey right now!
 		static char keybPressedKey = NULL; 	// is set to a key that is pressed alone. Used to act only at release of this key, not on pressing it. Also used for acting on hold of key.
 		static char keybHeldKey = NULL; 		//used to remember which key was held (to act on its release)
-		
+
+    static char keyb_current_playListKey = ' ';
 
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -93,14 +96,14 @@
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 8. the keypad/keyboard itself		
-		extern Keypad keypad; // defined in setup()
+		// see 010_globals
 	
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
 	// 9. the eventListener callback function for different types of keys
 	
-		void keypadEvent(KeypadEvent key){
+		void keypad_callback_onEvent( char key){
 			// if more than one key is pressed, then
 			// don't do anything with pressed keys
 			// don't react on released keys
@@ -117,16 +120,16 @@
 				switch (keypad.getState()){
 					case PRESSED:
 						keybPressedKey = key;
-						break;
+						break; // we don't react on keypressing, only on holding and especially on releasing a key
 						
 					case HOLD:
 						keybHeldKey = key;
 						if ( key ='F' ) {
 							// seeking while button is held
-							
+							// TBD later release
 						} else if ( key ='R') {
 							// seeking back while button is held
-							
+							// TBD later release
 						}
 						break;
 
@@ -148,14 +151,23 @@
 							if (keybHeldKey == NULL) {
 								// key released after pressed but not held
 								// play playlist nr. <key> from beginning
-							} else {
+
+                // remember what key/playlist we want to play as event-triggers for statemachine are stateless (have no memory)
+                keyb_current_playListKey = key;
+                
+                // if player is playing we use transition B3 in smMain, else we use transition B1
+                smMain.trigger(smMain_event_playOtherPlaylist); // B3-case
+                smMain.trigger(smMain_event_playWav); // B1-case
+            } else {
 								// key released after held
 								// play playlist nr. <key> from stored position (from EEPROM)
+                // TBD for later release!
 							} 
 						} else if (key=='F') {
 							if (keybHeldKey == NULL) {
 								// key released after pressed but not held
 								// skip to next track in playlist
+                smMain.trigger(smMain_event_skip); // E1 transition in smMain
 							} else if (key == keybHeldKey) {
 								// key released after held
 								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
@@ -164,6 +176,7 @@
 							if (keybHeldKey == NULL) {
 								// key released after pressed but not held
 								// skip to previous track in playlist
+                smMain.trigger(smMain_event_skipBack); // E2 transition in smMain
 							} else if (key == keybHeldKey) {
 								// key released after held
 								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
@@ -171,12 +184,15 @@
 						} else if (key=='S') {
 							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
 							// setSleeper()
+              // TBD later release
 						} else if (key=='L') {
 							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
 							// setLoudness()
+              // TBD later release
 						} else if (key=='Z') {
 							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
 							// tellStatus()
+              // TBD later release
 						}
 						
 						// clean up the flags (remember: only one key allowed at any time!)
@@ -186,6 +202,14 @@
 				} // switch
 			} // if
 		} // keypadEvent
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    // 10. the keypad setup function
+      bool keyb_setup(){
+          return true; // nothing to setup yet        
+      }
 
 
 //  EOF	

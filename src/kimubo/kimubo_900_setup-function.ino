@@ -36,7 +36,7 @@
  * Abschnitt SETUP
  */
 
-	Keypad keypad = Keypad( makeKeymap(KEYB_keyScans), KEYB_RowPins, KEYB_ColPins, KEYB_ROWS, KEYB_COLS );
+	
 
 	void setup() {
 
@@ -45,7 +45,7 @@
 		keypad.setHoldTime(KEYB_HOLD_TIME);
 		keypad.setDebounceTime(KEYB_DEBOUNCE_TIME);
 		// add an event listener 
-		keypad.addEventListener(keypadEvent); 
+		keypad.addEventListener(keypad_callback_onEvent); 
 
 	} // setup()
   

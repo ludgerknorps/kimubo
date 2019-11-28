@@ -65,6 +65,49 @@
 
 		// defining debug --> serial output delivers information on internals, timing and cpu load may be a little of compared to non-debug-mode
 		#define debug
+
+
+  // ####################################################################################
+  // ####################################################################################
+  // ####################################################################################
+  // ####################################################################################
+  // ####################################################################################
+  // ####################################################################################
+  // ####################################################################################
+  // ####################################################################################
+  // ####################################################################################
+  /* 
+   * Abschnitt smMain
+   */
+
+    // for seeking, i.e. fast forward or backward in a track
+    //        In order to do that we play a short part of the track,
+    //        then hop to a position a little further, play again, hop again, etc.
+    //        There are two relevant user-defined constants:
+    //          a) SEEK_SPEEDUP       how fast shall seeking be (in times of normal play speed)
+    //          b) SEEK_DURATION_PLAYING  how much of a track shall be played between hops (in milliseconds)
+    #define SEEK_SPEEDUP      10
+    #define SEEK_DURATION_PLAYING 10
+    //        From those user-defined constants we can derive some internally relevant auto-constants:
+    //          c) SEEK_INTERVAL_LENGTH   how long is a one seek interval in total (playing + hopping)
+    //          d) SEEK_INTERVAL_HOP_FWD  how far do we hop forward before playing again
+    //          e) SEEK_INTERVAL_HOP_BWD  how far do we hop backward before playing again
+    #define SEEK_INTERVAL_LENGTH  (1000/SEEK_SPEEDUP)
+    #define SEEK_INTERVAL_HOP_FWD (SEEK_INTERVAL_LENGTH-SEEK_DURATION_PLAYING)
+    #define SEEK_INTERVAL_HOP_BWD (SEEK_INTERVAL_LENGTH+SEEK_DURATION_PLAYING)
+    
+    // for powersaving there is one relevant user-defined constant:
+    //          a) POWERSAVE_AFTER      after which time (in milliseconds) shall device enter low-power-state
+    //                        coming from idle, the low-power-state is recoverable, 
+    //                        i.e. we can return to idle on e.g. keypress
+    #define POWERSAVE_AFTER     30000
+    //        From this user-defined constant we can derive some internally relevant auto-constants:
+    //          b) POWERSAVE_AFTER_PAUSE  after which time in pause-state shall device enter low-power-state
+    //                        (in times of POWERSAVE_AFTER, not milliseconds!)
+    //                        coming from pause, the low-power-state is recoverable, 
+    //                        i.e. we can return to pause on e.g. keypress BUT NOT by just turning
+    //                        the volume up again, thus do not choose a too small value here!
+    #define POWERSAVE_AFTER_PAUSE (60*POWERSAVE_AFTER)
 		
 
 	// ####################################################################################
@@ -88,7 +131,7 @@
 			// buffer size must be even number.
 			// all together must fit into RAM. 
 			// All buffers together form one big "semi-ring-buffer".
-			#define PCM_BUFFER_SIZE 		128  // must be even number (because of 16bit == 2 byte read at-a-time)	 
+			#define PCM_BUFFER_SIZE 		    128  // must be even number (because of 16bit == 2 byte read at-a-time)	 
 		
 		
 			static const unsigned int 	PCM_SAMPLE_RATE	= 24000;
@@ -212,15 +255,15 @@
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // 1. Definition KeyScanCodes
-			static const char KEYSCAN_1      =  '1' ;  
-			static const char KEYSCAN_2      =  '2' ; 
-			static const char KEYSCAN_3      =  '3' ;  
-			static const char KEYSCAN_4      =  '4' ;  
-			static const char KEYSCAN_5      =  '5' ;  
-			static const char KEYSCAN_6      =  '6' ; 
-			static const char KEYSCAN_7      =  '7' ;  
-			static const char KEYSCAN_8      =  '8' ;  
-			static const char KEYSCAN_9      =  '9' ;  
+			static const char KEYSCAN_1      =  '0' ;  
+			static const char KEYSCAN_2      =  '1' ; 
+			static const char KEYSCAN_3      =  '2' ;  
+			static const char KEYSCAN_4      =  '3' ;  
+			static const char KEYSCAN_5      =  '4' ;  
+			static const char KEYSCAN_6      =  '5' ; 
+			static const char KEYSCAN_7      =  '6' ;  
+			static const char KEYSCAN_8      =  '7' ;  
+			static const char KEYSCAN_9      =  '8' ;  
 			static const char KEYSCAN_FFWD   =  'F' ;  // FastForwar / Skip
 			static const char KEYSCAN_REW    =  'R' ;  // Rewind / Skipback
 			static const char KEYSCAN_STAT   =  'Z' ;  // Status (output via speech)
@@ -325,19 +368,21 @@
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// Pins
 			// pins are Arduino pin nr.	
-			static const byte AMP_PIN_LEFTIN 			= 0; // via resistor-ladder to both PWM outputs #9 and #10 (AUDIO_PIN_OUT_HIGH and AUDIO_PIN_OUT_LOW)
-			//static const byte AMP_PIN_RIGHTIN 		= 0; // not used
-			static const byte AMP_PIN_GNDIN 			= 0; // directly connected to GND
-			static const byte AMP_PIN_LEFTOUTPLUS 		= 0; // directly connected to SPEAKER_PIN_PLUS
-			static const byte AMP_PIN_LEFTOUTGND 		= 0; // directly connected to SPEAKER_PIN_MINUS
-			//static const byte AMP_PIN_RIGHTOUTPLUS 	= 0; // not used
-			//static const byte AMP_PIN_LEFTOUTGND 		= 0; // not used
-			static const byte AMP_PIN_POWERPLUS 		= 0; // directly connected to BATTERY_PIN_PLUS
-			static const byte AMP_PIN_POWERGND 			= 0; // directly connected to GND and BATTERY_PIN_GND
-			static const byte AMP_PIN_SWITCHED_PLUS 	= 0; // directly connected to RAW // this is our power supply!
-			static const byte AMP_PIN_VOL_FEEDBACK		= A6;
-			static const byte AMP_PIN_MUTE	 			= A7; // used as digital pin
-			static const byte AMP_PIN_SUSPEND			= A4; // used as digital pin
+			//~ #define AMP_PIN_LEFTIN 						0 // via resistor-ladder to both PWM outputs #9 and #10 (AUDIO_PIN_OUT_HIGH and AUDIO_PIN_OUT_LOW)
+			//~ #define AMP_PIN_RIGHTIN 					0 // not used
+			//~ #define AMP_PIN_GNDIN 						0 // directly connected to GND
+			//~ #define AMP_PIN_LEFTOUTPLUS 				0 // directly connected to SPEAKER_PIN_PLUS
+			//~ #define AMP_PIN_LEFTOUTGND 					0 // directly connected to SPEAKER_PIN_MINUS
+			//~ #define AMP_PIN_RIGHTOUTPLUS 				0 // not used
+			//~ #define AMP_PIN_LEFTOUTGND 					0 // not used
+			//~ #define AMP_PIN_POWERPLUS 					0 // directly connected to BATTERY_PIN_PLUS
+			//~ #define AMP_PIN_POWERGND 					0 // directly connected to GND and BATTERY_PIN_GND
+			//~ #define AMP_PIN_SWITCHED_PLUS 				0 // directly connected to RAW // this is our power supply!
+			// used as analog input pin:
+			#define AMP_PIN_VOL_FEEDBACK					A6
+			// used as digital output pins:
+			#define AMP_PIN_MUTE	 						A7
+			#define AMP_PIN_SUSPEND							A4 
 			
 			
 	// ####################################################################################
@@ -353,23 +398,43 @@
 	 * Abschnitt SDCard
 	 */
 
+
+
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// Pins
 			// pins are Arduino pin nr.	
-			static const byte SDC_PIN_MOSI	 			= 11; // MOSI
-			static const byte SDC_PIN_MISO				= 12;  // MISO
-			static const byte SDC_PIN_SCK				= 13;  // SCK
-			static const byte SDC_PIN_CS				= 4; 
-			static const byte SDC_PIN_VCC		 		= 0; // directly connected to RAW
-			static const byte SDC_PIN_GND	 			= 0; // directly connected to GND
+			#define SDC_PIN_MOSI	 			11 
+			#define SDC_PIN_MISO				12  
+			#define SDC_PIN_SCK					13 
+			#define SDC_PIN_CS					4 
+			//~ #define SDC_PIN_VCC		 		0 // directly connected to RAW
+			//~ #define SDC_PIN_GND	 			0 // directly connected to GND
 			
-		// Globals
+		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // Globals
 		
-			// define what suffix all PCM/WAV files need to haave on the SD-card.
+			// define what suffix all PCM/WAV files need to have on the SD-card.
 			// relevant for "normal" PCM files as well as message-files.
-			char SUFFIX_PCM_FILES[5] = ".WAV";
+			const char SUFFIX_PCM_FILES[] = ".WAV";
+			
+			// where on SDcard are all our files stored?
+			// we use hard-fixed "/", no user-definable variable!
+
+      // define how the subdir is named, that holds system-message-pcm-files
+      // relevant for "normal" PCM files as well as message-files.
+      const char SDC_SYSTEM_MESSAGES_DIR[] = "system";
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		// Test with reduced SPI speed for breadboards.  SD_SCK_MHZ(4) will select
+		// the highest speed supported by the board that is not over 4 MHz.
+		// Change SDC_SPI_SPEED to SD_SCK_MHZ(50) for best performance.
+			#define SDC_SPI_SPEED     SD_SCK_MHZ(50)
 			
 
 

@@ -22,22 +22,22 @@
  * 
  */
  
-#include <BlockDriver.h>
-#include <sdios.h>
-#include <FreeStack.h>
+#include <SPI.h>
 #include <SdFat.h>
-#include <SysCall.h>
-#include <SdFatConfig.h>
-#include <MinimumSerial.h>
+
 
 
 #include "kimubo.h"
+
 
 //adapted version of libraries!
 #include "local.lib/Keypad/src/Keypad.h"
 #include "local.lib/Keypad/src/Keypad.cpp"
 #include "local.lib/Keypad/src/Key.h"
 #include "local.lib/Keypad/src/Key.cpp"
+
+#include "local.lib/arduino-fsm/Fsm.h"
+#include "local.lib/arduino-fsm/Fsm.cpp"
 
 // wir verwenden das Arduino Pro Mini interne EEPROM zum speichern von Einstellungen
 #include <EEPROM.h>

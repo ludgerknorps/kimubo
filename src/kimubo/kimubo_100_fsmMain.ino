@@ -21,7 +21,6 @@
  *   If not, see <https://www.gnu.org/licenses/>.
  * 
  */
- 
 
 
 // ####################################################################################
@@ -41,54 +40,20 @@
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 1. state and transition callback functions
-	
-		void smMain_state_init_onEnter();
+
+    // see 010_globals
 		
-		void smMain_state_idle_onEnter();
-		
-		void smMain_state_seek_onEnter();
-		void smMain_state_seekBack_onEnter();
-		
-		void smMain_state_powerSave_onEnter();
-		
-		void smMain_state_powerSave_onExit();
-		
-		
-		// transitionActions
-		void smMain_trans_B1_onTransition();
-		void smMain_trans_B2_onTransition();
-		void smMain_trans_B3_onTransition();
-		
-		void smMain_trans_D1_onTransition();
-		void smMain_trans_D2_onTransition();
-		
-		void smMain_trans_E1_onTransition();
-		void smMain_trans_E2_onTransition();
-		
-		void smMain_trans_F2_onTransition();
-		void smMain_trans_F5_onTransition();
-		
-		void smMain_trans_G1_onTransition();
-		void smMain_trans_G2_onTransition();
-		void smMain_trans_G4_onTransition();
-		void smMain_trans_G5_onTransition();
-		void smMain_trans_G6_onTransition();
-		void smMain_trans_G7_onTransition();
-		
-		
-		
-	
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 2. states
 		State smMain_state_init(&smMain_state_init_onEnter, NULL, NULL);
 		State smMain_state_idle(&smMain_state_idle_onEnter, NULL, NULL);
-		State smMain_state_playWav(NULL, NULL, NULL);
-		State smMain_state_pause(NULL, NULL, NULL);
+		State smMain_state_playWav(&smMain_state_playWav_onEnter, NULL, NULL);
+		State smMain_state_pause(&smMain_state_pause_onEnter, NULL, NULL);
 		State smMain_state_seek(&smMain_state_seek_onEnter, NULL, NULL);
 		State smMain_state_seekBack(&smMain_state_seekBack_onEnter, NULL, NULL);
-		State smMain_state_playMessage(NULL, NULL, NULL);
+		State smMain_state_playMessage(&smMain_state_playMessage_onEnter, NULL, NULL);
 		State smMain_state_powerSave(&smMain_state_powerSave_onEnter, NULL, &smMain_state_powerSave_onExit);
 
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -96,59 +61,14 @@
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 3. some global variables of the state machine
 	
-		// for seeking, i.e. fast forward or backward in a track
-		// 				In order to do that we play a short part of the track,
-		// 				then hop to a position a little further, play again, hop again, etc.
-		//				There are two relevant user-defined constants:
-		//					a) SEEK_SPEEDUP				how fast shall seeking be (in times of normal play speed)
-		//					b) SEEK_DURATION_PLAYING	how much of a track shall be played between hops (in milliseconds)
-		#define SEEK_SPEEDUP			10
-		#define SEEK_DURATION_PLAYING	10
-		//				From those user-defined constants we can derive some internally relevant auto-constants:
-		//					c) SEEK_INTERVAL_LENGTH		how long is a one seek interval in total (playing + hopping)
-		//					d) SEEK_INTERVAL_HOP_FWD	how far do we hop forward before playing again
-		//					e) SEEK_INTERVAL_HOP_BWD	how far do we hop backward before playing again
-		#define SEEK_INTERVAL_LENGTH	(1000/SEEK_SPEEDUP)
-		#define SEEK_INTERVAL_HOP_FWD	(SEEK_INTERVAL_LENGTH-SEEK_DURATION_PLAYING)
-		#define SEEK_INTERVAL_HOP_BWD	(SEEK_INTERVAL_LENGTH+SEEK_DURATION_PLAYING)
-		
-		// for powersaving there is one relevant user-defined constant:
-		//					a) POWERSAVE_AFTER			after which time (in milliseconds) shall device enter low-power-state
-		//												coming from idle, the low-power-state is recoverable, 
-		//												i.e. we can return to idle on e.g. keypress
-		#define POWERSAVE_AFTER			30000
-		//				From this user-defined constant we can derive some internally relevant auto-constants:
-		//					b) POWERSAVE_AFTER_PAUSE	after which time in pause-state shall device enter low-power-state
-		//												(in times of POWERSAVE_AFTER, not milliseconds!)
-		//												coming from pause, the low-power-state is recoverable, 
-		// 												i.e. we can return to pause on e.g. keypress BUT NOT by just turning
-		//												the volume up again, thus do not choose a too small value here!
-		#define POWERSAVE_AFTER_PAUSE	(60*POWERSAVE_AFTER)
+		// see kimubo.h
 		
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// 4. events (values don't matter, need to be unique each within this statemachine, though)
-		#define smMain_event_init_completed 				1
-		#define smMain_event_stop			 				5
-		#define smMain_event_playWav			 			10
-		#define smMain_event_playNextWav					12
-		#define smMain_event_playOtherPlaylist				13
-		#define smMain_event_pause							15
-		#define smMain_event_resume							20
-		#define smMain_event_skip				 			25
-		#define smMain_event_skipBack						30
-		#define smMain_event_seek							35
-		#define smMain_event_seekBack						40
-		#define smMain_event_gotoSleep 						45
-		#define smMain_event_wakeUpToIdle					47
-		#define smMain_event_wakeUpToPause					48
-		#define smMain_event_playMessage					50
-		#define smMain_event_playNextMessagePart			53
-		#define smMain_event_continue						55
-		#define smMain_event_returnToPause					60
-		#define smMain_event_returnToIdle					65
-		#define smMain_event_fatalerror_detected			255
+		
+    // see 010_globals
 		
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -159,7 +79,7 @@
 			
 			// A1 transition init to idle
 			// we are ready but not doing anything yet
-			smMain.add_transition(	&smMain_state_init, 
+			  smMain.add_transition(	&smMain_state_init, 
 									&smMain_state_idle, 
 									smMain_event_init_completed, 
 									NULL);
@@ -385,79 +305,92 @@
 		/* =========================================================== */
 		// called once at device startup
 		void smMain_state_init_onEnter(){
-			
-			// -------------------------------------------------------------------
-			// Setup Timers for PCM Output
-			// -------------------------------------------------------------------
-				//ludgerknorps ISR-debug
-				#if defined (ISR_BUFFER_DEBUG_PIN)
-					pinMode(ISR_BUFFER_DEBUG_PIN,OUTPUT);
-					setPinD0_D21(ISR_BUFFER_DEBUG_PIN);
-				#endif
-				#if defined (ISR_PCMFEED_DEBUG_PIN)
-					pinMode(ISR_PCMFEED_DEBUG_PIN,OUTPUT);
-					setPinD0_D21(ISR_PCMFEED_DEBUG_PIN);
-				#endif
+				#if defined (debug)
+          Serial.println(F("smMain ENTERED STATE init"));
+        #endif
 				
-				//Reset Timer/Counter Control Register A and B
-				TCCR1A = 0;
-				TCCR1B = 0;
-				
-				//Modus Phase+FrequCorrect PWM-Mode TOP = ICR1 (Mode 8), see [ATMEGA328 datasheet DS40002061A-page 141]
-				TCCR1A &= ~_BV(WGM10);
-				TCCR1A &= ~_BV(WGM11);
-				TCCR1B &= ~_BV(WGM12);
-				TCCR1B |=  _BV(WGM13);
-				
-				// TOP = ICR1 is set later by metadata read from PCM-file...
-				//~ ICR1 = ...;	
-				
-				//Timer1 prescaler: set to 1
-				TCCR1B &= ~_BV(CS12);
-				TCCR1B &= ~_BV(CS11);
-				TCCR1B |=  _BV(CS10);
-
-				//noninverting PWM-Signal for channels A and B
-				TCCR1A |=  _BV(COM1A1);
-				TCCR1A &= ~_BV(COM1A0);
-				TCCR1A |=  _BV(COM1B1);
-				TCCR1A &= ~_BV(COM1B0);
-			// End of Setup Timers for PCM Output
-			
-			// -------------------------------------------------------------------
-			// define and set PWM pins
-			// -------------------------------------------------------------------
-			
-				// PWM pins pair MSB=9 LSB=10, together 16bit PWM :-)
-				// configure both PWM-output pins (they are defined in .h file)
-				pinMode(AUDIO_PIN_OUT_HIGH,OUTPUT);
-				pinMode(AUDIO_PIN_OUT_LOW,OUTPUT);
-
-				#if defined (SD_FULLSPEED)
-					SPSR |= (1 << SPI2X);
-					SPCR &= ~((1 <<SPR1) | (1 << SPR0));
-				#endif
-				SD.begin(SD_ChipSelectPin)
+				if (  sdc_setup() &&
+				      keyb_setup() &&
+              player_setup()
+				   ){
+            smMain.trigger(smMain_event_init_completed); 
+				}
 		}
 		
 		
 		/* =========================================================== */
 		void smMain_state_idle_onEnter(){
 			// tbd.
-				LKpcm::stopPlayback()
+				#if defined (debug)
+          Serial.println(F("smMain ENTERED STATE idle"));
+        #endif
+        
+        player_stop();
 		}
+
+    /* =========================================================== */
+    void smMain_state_playWav_onEnter(){
+      // tbd.
+        #if defined (debug)
+          Serial.println(F("smMain ENTERED STATE playWav"));
+        #endif
+
+        // in one of the transition actions (or even before them) we started playing, if everything went right and there is a (potentially next) file to play.
+        // so right now, we should be playing.
+        // if not, then there was no (next) file --> we now need to switch to state idle as we are stopped.
+        if ( ! player_isPlaying ){
+            smMain.trigger(smMain_event_stop);
+        } else {
+            // do nothing, the ISRs are pumping the music out :-)
+        }
+    }
+
+    /* =========================================================== */
+    void smMain_state_pause_onEnter(){
+      // tbd.
+        #if defined (debug)
+          Serial.println(F("smMain ENTERED STATE pause"));
+        #endif
+    }
 		
 		/* =========================================================== */
 		void smMain_state_seek_onEnter(){
 			// tbd.
-				LKpcm::play(char* filename, unsigned long seekPoint)
+				#if defined (debug)
+          Serial.println(F("smMain ENTERED STATE seek"));
+        #endif
+
 		}
 		
 		/* =========================================================== */
 		void smMain_state_seekBack_onEnter(){
-			// tbd.
-				LKpcm::play(char* filename, unsigned long seekPoint)
+			  #if defined (debug)
+          Serial.println(F("smMain ENTERED STATE seekBack"));
+        #endif
+        
 		}
+
+    /* =========================================================== */
+    void smMain_state_playMessage_onEnter(){
+         #if defined (debug)
+          Serial.println(F("smMain ENTERED STATE playMessage"));
+        #endif
+
+    }
+
+    /* =========================================================== */
+    void smMain_state_powerSave_onEnter(){
+        #if defined (debug)
+          Serial.println(F("smMain ENTERED STATE powerSave"));
+        #endif
+
+    }
+
+    /* =========================================================== */
+    void smMain_state_powerSave_onExit(){
+      // tbd.
+        
+    }
 		
 		
 		
@@ -465,40 +398,224 @@
 		
 		/* =========================================================== */
 		void smMain_trans_B1_onTransition(){
-			// tbd.
-				LKpcm::play(char* filename)
+		    #if defined (debug)
+          Serial.println(F("smMain TRANSITION B1"));
+        #endif
+
+        // goto right dir on sdc
+        // open file 0, e.g. "0.WAV" depending on SUFFIX_PCM_FILES
+        // start playing at begin of file 0
+        
+        // remember current playlist
+        player_current_playlist_dirname = keyb_current_playListKey;
+        // goto according dir
+        if ( sdc_fileSystem.chdir(player_current_playlist_dirname) ){
+            #if defined (debug)
+              Serial.print(F("smMain TRANSITION B1 chdir to "));
+              Serial.println(player_current_playlist_dirname);
+            #endif
+
+            // begin with track 0
+            player_current_track = 0;
+            get_new_track_player_filename;
+            if (sdc_fileSystem.exists(player_current_track_filename)){
+                player_play(player_current_track_filename);
+            } else {
+                player_stop(); // there is no first file in dir --> ok it might be empty, i.e. no playlist stored there...
+            }
+        } else {
+            #if defined (debug)
+              Serial.print(F("smMain TRANSITION B1 ERROR! cannot chdir to "));
+              Serial.println(player_current_playlist_dirname);   
+            #endif
+        }      
 		}
 		
 		/* =========================================================== */
 		void smMain_trans_B2_onTransition(){
-			// tbd.
-				LKpcm::play(char* filename)
+				#if defined (debug)
+          Serial.println(F("smMain TRANSITION B2"));
+        #endif
+        // select next track (stay in same dir/playlist)
+        player_current_track++;
+        get_new_track_player_filename;
+        if (sdc_fileSystem.exists(player_current_track_filename)){
+            player_play(player_current_track_filename);
+        } else {
+            player_stop(); // there is no first file in dir --> ok it might be empty, i.e. no playlist stored there...
+        }
 		}
 		
 		/* =========================================================== */
 		void smMain_trans_B3_onTransition(){
-			// tbd.
-				LKpcm::play(char* filename)
+			  #if defined (debug)
+          Serial.println(F("smMain TRANSITION B3"));
+        #endif
+        // goto right dir on sdc
+        // open file 0, e.g. "0.WAV" depending on SUFFIX_PCM_FILES
+        // start playing at begin of file 0
+
+        // difference to transition B1 (idle -> play):
+        // if there are no files in new selected playlist, we continue to play the files from the provious dir/playlist
+        
+        // only do something, if the pressed key is not belonging to currently played playlist
+        if ( keyb_current_playListKey != player_current_playlist_dirname ){
+        
+            // goto according dir (we do not yet remember the new playlist as "current" one, as we do not know whether there are some files in this dir or not)
+            if ( sdc_fileSystem.chdir(keyb_current_playListKey) ){
+                #if defined (debug)
+                  Serial.print(F("smMain TRANSITION B3 chdir to "));
+                  Serial.println(player_current_playlist_dirname);
+                #endif
+                // remember track that is playing right now
+                byte tempPreviousTrack = player_current_track;
+                
+                // begin with track 0
+                player_current_track = 0;
+                get_new_track_player_filename;
+                if (sdc_fileSystem.exists(player_current_track_filename)){
+                    // NOW remember current playlist
+                    player_current_playlist_dirname = keyb_current_playListKey;
+                    player_play(player_current_track_filename);
+                } else {
+                    // there is no first file in dir --> just continue playing the file that is already being played...
+                    sdc_fileSystem.chdir(player_current_playlist_dirname);
+                    player_current_track = tempPreviousTrack;
+                    get_new_track_player_filename;
+                }
+            } else {
+                #if defined (debug)
+                  Serial.print(F("smMain TRANSITION B3 ERROR! cannot chdir to "));
+                  Serial.println(player_current_playlist_dirname);   
+                #endif
+            }
+        } else {
+            // we do nothing, just write debug
+            #if defined (debug)
+                Serial.print(F("smMain TRANSITION B3 INFO current playlist was re-selected: "));
+                Serial.println(player_current_playlist_dirname);   
+            #endif
+        }
 		}
 		
 		
 		/* =========================================================== */
 		void smMain_trans_D1_onTransition(){
-			// tbd.
-				LKpcm::pause()
+			  #if defined (debug)
+          Serial.println(F("smMain TRANSITION D1"));
+        #endif
+        player_pause();
 		}
 		
 		/* =========================================================== */
 		void smMain_trans_D2_onTransition(){
-			// tbd.
-				LKpcm::pause()
+			  #if defined (debug)
+          Serial.println(F("smMain TRANSITION D2"));
+        #endif
+        player_pause();
 		}
+
+   /* =========================================================== */
+   void smMain_trans_E1_onTransition(){
+        #if defined (debug)
+          Serial.println(F("smMain TRANSITION E1"));
+        #endif
+        // select next track (stay in same dir/playlist)
+        // is user wants to skip tracks by pressing forward or backward keys, we handle the "cornercases" as follows:
+        // a) first track in playlist and user again presses skipBack --> stay in track 0 and restart track 0 at position 0
+        // b) last track in playlist and user again presses skip --> do nothing
+
+// TBD TBD: use player_track_number_max for comparison!
+        
+        player_current_track++;
+        get_new_track_player_filename;
+        if (sdc_fileSystem.exists(player_current_track_filename)){
+            player_play(player_current_track_filename);
+        } else {
+            player_stop(); // there is no first file in dir --> ok it might be empty, i.e. no playlist stored there...
+        }
+        // as there is no file " " if player_current_track rolls over from 254 to 255, the player stops
+    }
+    
+    /* =========================================================== */
+    void smMain_trans_E2_onTransition(){
+        #if defined (debug)
+          Serial.println(F("smMain TRANSITION E2"));
+        #endif
+        // select next track (stay in same dir/playlist)
+        player_current_track--;
+        get_new_track_player_filename;
+        if (sdc_fileSystem.exists(player_current_track_filename)){
+            player_play(player_current_track_filename);
+        } else {
+            player_stop(); // there is no first file in dir --> ok it might be empty, i.e. no playlist stored there...
+        }
+        // as there is no file " " if player_current_track rolls over from 0 to 255, the player stops
+    }
+
+    /* =========================================================== */
+    void smMain_trans_F2_onTransition(){
+        #if defined (debug)
+          Serial.println(F("smMain TRANSITION F2"));
+        #endif
+        player_pause();
+    }
+    
+    /* =========================================================== */
+    void smMain_trans_F5_onTransition(){
+        #if defined (debug)
+          Serial.println(F("smMain TRANSITION F5"));
+        #endif
+        player_pause();
+    }
+
+    /* =========================================================== */
+    void smMain_trans_G1_onTransition(){
+        #if defined (debug)
+          Serial.println(F("smMain TRANSITION G1"));
+        #endif
+        player_pause();
+    }
+    
+    /* =========================================================== */
+    void smMain_trans_G2_onTransition(){
+        #if defined (debug)
+          Serial.println(F("smMain TRANSITION G2"));
+        #endif
+        player_pause();
+    }
+
+    /* =========================================================== */
+    void smMain_trans_G4_onTransition(){
+        #if defined (debug)
+          Serial.println(F("smMain TRANSITION G4"));
+        #endif
+        player_pause();
+    }
+    
+    /* =========================================================== */
+    void smMain_trans_G5_onTransition(){
+        #if defined (debug)
+          Serial.println(F("smMain TRANSITION G5"));
+        #endif
+        player_pause();
+    }
+
+    /* =========================================================== */
+    void smMain_trans_G6_onTransition(){
+        #if defined (debug)
+          Serial.println(F("smMain TRANSITION G6"));
+        #endif
+        player_pause();
+    }
+    
+    /* =========================================================== */
+    void smMain_trans_G7_onTransition(){
+        #if defined (debug)
+          Serial.println(F("smMain TRANSITION G7"));
+        #endif
+        player_pause();
+    }
 		
 		
 	
-	
-		/* =========================================================== */
-		void smMain_trans_B1_onTransition(){
-			// tbd.
-				LKpcm::play(char* filename)
-		} 
