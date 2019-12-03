@@ -34,8 +34,9 @@
 #include "local.lib/Keypad/src/Key.h"
 #include "local.lib/Keypad/src/Key.cpp"
 
-#include "local.lib/arduino-fsm/Fsm.h"
-#include "local.lib/arduino-fsm/Fsm.cpp"
+//#include "local.lib/arduino-fsm/Fsm.h"
+//#include "local.lib/arduino-fsm/Fsm.cpp"
+#include <Fsm.h>
 
 #include "local.lib/PetitFS/src/PetitFS.h"
 #include "local.lib/PetitFS/src/avr_mmcp.cpp"

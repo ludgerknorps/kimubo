@@ -26,6 +26,10 @@
 
 bool sdc_setup(){
 
+    #if defined (debug)
+        Serial.println(F("sdc_setup INFO started..."));
+    #endif
+
     char c; // temporary var.
     byte i; // temporary var.
     byte j; // temporary var.
@@ -137,7 +141,7 @@ bool sdc_setup(){
                 #endif
             } else {
                 #if defined (debug)
-                    Serial.print(F("sdc_setup ERROR pf_readdir found a not allowed dir"));
+                    Serial.print(F("sdc_setup ERROR pf_readdir found a not allowed rootentry "));
                     Serial.println(fileinfo.fname);
                 #endif
                 return false;
@@ -150,7 +154,7 @@ bool sdc_setup(){
                 #endif
             } else {
                 #if defined (debug)
-                    Serial.print(F("sdc_setup ERROR pf_readdir found a not allowed dir"));
+                    Serial.print(F("sdc_setup ERROR 2 pf_readdir found a not allowed rootentry "));
                     Serial.println(fileinfo.fname);
                 #endif
                 return false;
@@ -353,5 +357,11 @@ bool sdc_setup(){
         
         i++; 
     } // next dir please!
+
+    #if defined (debug)
+        Serial.println(F("sdc_setup INFO finished."));
+    #endif
+
+    return true;
   
 } // sdc_setup()

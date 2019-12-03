@@ -100,7 +100,7 @@
     //          a) POWERSAVE_AFTER      after which time (in milliseconds) shall device enter low-power-state
     //                        coming from idle, the low-power-state is recoverable, 
     //                        i.e. we can return to idle on e.g. keypress
-    #define POWERSAVE_AFTER     30000
+    #define POWERSAVE_AFTER     3000000
     //        From this user-defined constant we can derive some internally relevant auto-constants:
     //          b) POWERSAVE_AFTER_PAUSE  after which time in pause-state shall device enter low-power-state
     //                        (in times of POWERSAVE_AFTER, not milliseconds!)
@@ -125,17 +125,18 @@
 
 
 		// User defined constants	
-			#define NUMBER_OF_PCM_BUFFERS 	4  	
+			#define NUMBER_OF_PCM_BUFFERS 	2  	
 			// how many pcm buffers, do we use? 
 			// each can be max 256 bytes big (because it is addressed by a byte-type). 
 			// buffer size must be even number.
 			// all together must fit into RAM. 
 			// All buffers together form one big "semi-ring-buffer".
-			#define PCM_BUFFER_SIZE 		    256  // must be even number (because of 16bit == 2 byte read at-a-time)	 
+			#define PCM_BUFFER_SIZE 		    256  
+			// must be even number (because of 16bit == 2 byte read at-a-time)	 
 		
 		
-			static const unsigned int 	PCM_SAMPLE_RATE	= 24000;
-			//~ static const unsigned int 	PCM_SAMPLE_RATE	= 32000;	// we aim to reach that in later sprint... (only possible with F_CPU == 20MHz!)
+			//static const unsigned int 	PCM_SAMPLE_RATE	= 24000;
+			static const unsigned int 	PCM_SAMPLE_RATE	= 16000;	// we aim to reach that in later sprint... (only possible with F_CPU == 20MHz!)
 		
 
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -419,14 +420,14 @@
 		
 			// define what suffix all PCM/WAV files need to have on the SD-card.
 			// relevant for "normal" PCM files as well as message-files.
-			const char SUFFIX_PCM_FILES[] = ".WAV";
+			const char SUFFIX_PCM_FILES[5] = ".WAV";
 			
 			// where on SDcard are all our files stored?
 			// we use hard-fixed "/", no user-definable variable!
 
       // define how the subdir is named, that holds system-message-pcm-files
       // relevant for "normal" PCM files as well as message-files.
-      const char SDC_SYSTEM_MESSAGES_DIR[] = "system";
+      const char SDC_SYSTEM_MESSAGES_DIR[7] = "SYSTEM";
 
 
 			

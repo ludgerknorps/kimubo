@@ -94,7 +94,8 @@
       static byte player_current_track;
       // in each playlist/dir we have files 0.WAV, 1.WAV, ..., 10.WAV, 11.WAV, ..., 100.WAV, 101.WAV, ... 254.WAV (that is the maximum! 255 is "no-value") Thus length of this string is at most SUFFIX_PCM_FILES + 3
       // additionally: 1 char each for leading and separating "/" and the dirname 
-      static char player_current_track_filename[strlen(SUFFIX_PCM_FILES) + 3 + 1 + 1 + 1];
+      // to be safe and to also include "SYSTEM" dir: 20
+      static char player_current_track_filename[20];
       
 
       // we also have to memorize:
@@ -251,55 +252,55 @@
  * Abschnitt FSM smMain
  */
 
-    extern State smMain_state_init;
-    extern State smMain_state_idle;
-    extern State smMain_state_playWav;
-    extern State smMain_state_pause;
-    extern State smMain_state_seek;
-    extern State smMain_state_seekBack;
-    extern State smMain_state_playMessage;
-    extern State smMain_state_powerSave;
+//    extern State smMain_state_init;
+//    extern State smMain_state_idle;
+//    extern State smMain_state_playWav;
+//    extern State smMain_state_pause;
+//    extern State smMain_state_seek;
+//    extern State smMain_state_seekBack;
+//    extern State smMain_state_playMessage;
+//    extern State smMain_state_powerSave;
 
   // state and transition callback functions
   
-    void smMain_state_init_onEnter();
-    
-    void smMain_state_idle_onEnter();
-
-    void smMain_state_playWav_onEnter();
-
-    void smMain_state_pause_onEnter();
-    
-    void smMain_state_seek_onEnter();
-    
-    void smMain_state_seekBack_onEnter();
-
-    void smMain_state_playMessage_onEnter();
-    
-    void smMain_state_powerSave_onEnter();
-    void smMain_state_powerSave_onExit();
-    
-    
-    // transitionActions
-    void smMain_trans_B1_onTransition();
-    void smMain_trans_B2_onTransition();
-    void smMain_trans_B3_onTransition();
-    
-    void smMain_trans_D1_onTransition();
-    void smMain_trans_D2_onTransition();
-    
-    void smMain_trans_E1_onTransition();
-    void smMain_trans_E2_onTransition();
-    
-    void smMain_trans_F2_onTransition();
-    void smMain_trans_F5_onTransition();
-    
-    void smMain_trans_G1_onTransition();
-    void smMain_trans_G2_onTransition();
-    void smMain_trans_G4_onTransition();
-    void smMain_trans_G5_onTransition();
-    void smMain_trans_G6_onTransition();
-    void smMain_trans_G7_onTransition();
+//    void smMain_state_init_onState();
+//    
+//    void smMain_state_idle_onEnter();
+//
+//    void smMain_state_playWav_onEnter();
+//
+//    void smMain_state_pause_onEnter();
+//    
+//    void smMain_state_seek_onEnter();
+//    
+//    void smMain_state_seekBack_onEnter();
+//
+//    void smMain_state_playMessage_onEnter();
+//    
+//    void smMain_state_powerSave_onEnter();
+//    void smMain_state_powerSave_onExit();
+//    
+//    
+//    // transitionActions
+//    void smMain_trans_B1_onTransition();
+//    void smMain_trans_B2_onTransition();
+//    void smMain_trans_B3_onTransition();
+//    
+//    void smMain_trans_D1_onTransition();
+//    void smMain_trans_D2_onTransition();
+//    
+//    void smMain_trans_E1_onTransition();
+//    void smMain_trans_E2_onTransition();
+//    
+//    void smMain_trans_F2_onTransition();
+//    void smMain_trans_F5_onTransition();
+//    
+//    void smMain_trans_G1_onTransition();
+//    void smMain_trans_G2_onTransition();
+//    void smMain_trans_G4_onTransition();
+//    void smMain_trans_G5_onTransition();
+//    void smMain_trans_G6_onTransition();
+//    void smMain_trans_G7_onTransition();
 
   // events (values don't matter, need to be unique each within this statemachine, though)
     #define smMain_event_init_completed         1
@@ -323,10 +324,12 @@
     #define smMain_event_returnToIdle         65
     #define smMain_event_fatalerror_detected      255
 
-  // functions
-    bool smMain_init_stateMachine();
+//  // functions
+//    bool smMain_init_stateMachine();
+//
+//  // the FSM itself
+//    extern Fsm smMain;
 
-  // the FSM itself
-    Fsm smMain(&smMain_state_init);
+    static unsigned long myTime;
 
 // EOF

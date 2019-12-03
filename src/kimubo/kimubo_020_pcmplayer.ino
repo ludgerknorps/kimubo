@@ -25,6 +25,10 @@
 
 bool player_setup(){
 
+      #if defined (debug)
+          Serial.println(F("player_setup INFO started..."));
+      #endif
+
       // call all relevant sub-setup-functions.
       // the bool-return is fake and just kept in order to be compatible with overall setup (done in fsmMain)
       player_setupPWMPins();
@@ -39,6 +43,10 @@ bool player_setup(){
       player_current_track = 255; // default
       get_new_track_player_filename(); // make filename from current_track_number
 
+      #if defined (debug)
+          Serial.println(F("player_setup INFO finished."));
+      #endif
+
       return true; // nothing else to report here...
 }
 
@@ -46,20 +54,57 @@ bool player_setup(){
 // calculates the new track's filename
 void get_new_track_player_filename(){
 
+    #if defined (debug)
+        Serial.print(F("get_new_track_player_filename "));
+        Serial.print(player_current_track);
+        Serial.print(F(" : "));
+        Serial.print(sizeof(player_current_track_filename));
+        delay(100);
+    #endif
+    
+
     char temp_filename[sizeof(player_current_track_filename)];
+    
 
     if ( player_current_track == 255 ){
         strcpy(player_current_track_filename, " "); // default
     } else {
         itoa(player_current_track, temp_filename, 10); // 10 = convert using decimal system
-        strcat(temp_filename, SUFFIX_PCM_FILES);
+        #if defined (debug)
+            Serial.print(F(" : "));
+            Serial.print(temp_filename);
+            delay(100);
+        #endif
         
-        strcpy(player_current_track_filename, "/");
-        strcat(player_current_track_filename, player_current_playlist_dirname);
-        strcat(player_current_track_filename, "/");
+        strcat(temp_filename, SUFFIX_PCM_FILES);
+
+        #if defined (debug)
+            Serial.print(F(" : "));
+            Serial.print(temp_filename);
+            Serial.print(F(" : "));
+            Serial.print(player_current_playlist_dirname);
+            delay(100);
+        #endif
+
+        // a short array to hold the playlist dirname 
+        char s[4] = "/ /"; // initialize 
+        s[1] = player_current_playlist_dirname; // overwrite
+        
+        strcpy(player_current_track_filename, s);
         strcat(player_current_track_filename, temp_filename);
+
+        #if defined (debug)
+            Serial.print(F(" : "));
+            Serial.print(player_current_track_filename);
+            delay(100);
+        #endif
     }
-      
+
+    #if defined (debug)
+        Serial.println();
+        delay(100);
+    #endif
+  
 }
 
 
@@ -170,6 +215,9 @@ bool player_openFile(char* filename){
 		#endif
 		return false;
 	}
+
+  return true;
+ 
 }
 
 
@@ -214,12 +262,44 @@ bool player_checkWAVFile(char* filename){
 		Serial.println(filename);
 	#endif
 
-	pf_lseek(8);
+  // read one first block into our buffer.
+  // we have to check on the metadata - which is in the first 44 bytes of the file / of the buffer.
+  // but afterwards we want to continue reading block-wise from the SDC (and an SDC-block is 512 bytes).
+  // so it would be not-ideal to read 44 bytes manually and then read 512bytes (or so) each.
+  // As every of these 512bytes would spa across more than one SDC-block.
+
+  // so...
+  // fill one buffer with data from sdc, other buffers will be filled by ISR "BufferInterupt"
+  // because of player_setupBuffers() read and write buffers are currently set to be 0.
+  // block-read from SDcard
+  pf_read( (byte*)player_buffer[player_currentWriteBuffer] , PCM_BUFFER_SIZE, &player_bytesFromSDC );
+
+  // if buffer is not fully filled (i.e. pf_read reached EOF) then playing will be stopped by ISR
+
+  if ( player_bytesFromSDC < 44 ) {
+      #if defined (debug)
+        Serial.println(F("WAV ERROR File too small (for metadata)"));
+      #endif
+      return 0;
+  }
+  
+  //player_bufferEmpty[player_currentWriteBuffer] = false;
+  // goto next buffer (or "roll over" to first buffer, if we were at the last one
+  // should not be necessary here because of clean starting setup for buffers at player_openFile()...
+  if (player_currentWriteBuffer < NUMBER_OF_PCM_BUFFERS - 1 ) { 
+    ++player_currentWriteBuffer ;
+  } else { 
+    player_currentWriteBuffer = 0;
+  }
+  
+  // now we can use the data from this buffer to check the metadata
+  // as state above: because of player_setupBuffers() the player_currentReadBuffer is also pointing to the buffer 0 which is the one we used here...
 	
+	// seek position 8
 	// second check: correct WAVE identifier?
 	char wavIdentifier[] = {'W','A','V','E'};
 	for (i = 0; i < 4; i++){
-		if( pf_read(0, 1, &player_bytesFromSDC) != wavIdentifier[i]){
+		if( player_buffer[player_currentReadBuffer][8 + i] != wavIdentifier[i]){
 			#if defined (debug)
 				Serial.println(F("WAV ERROR INCORRECT IDENTIFIER"));
 			#endif
@@ -227,31 +307,37 @@ bool player_checkWAVFile(char* filename){
 		}
 	}
 
-	// third check: file must be mono (no stereo allowed!)
-	pf_lseek(22);
-	if (pf_read(0, 1, &player_bytesFromSDC) != '1'){
-		#if defined (debug)
-			Serial.println(F("WAV ERROR STEREO"));
-		#endif
-		return 0;
-	}
+//	// third check: file must be mono (no stereo allowed!)
+//	// seek position 22
+//	if ( player_buffer[player_currentReadBuffer][22] != '1'){
+//		#if defined (debug)
+//			Serial.print(F("WAV ERROR STEREO " ));
+//      //Serial.print( player_buffer[player_currentReadBuffer][20] );
+//      //Serial.print( player_buffer[player_currentReadBuffer][21] );
+//      Serial.println( player_buffer[player_currentReadBuffer][22] );
+//      //Serial.print( player_buffer[player_currentReadBuffer][23] );
+//      //Serial.print( player_buffer[player_currentReadBuffer][24] );
+//      delay(100);
+//		#endif
+//		return 0;
+//	}
 	
-	// fourth check: sample rate must match user defined value, see header file...
-	// we need to read two bytes, as sample rate is type unsigned integer
-	pf_lseek(24);
-	i = pf_read(0, 1, &player_bytesFromSDC)	| ( pf_read(0, 1, &player_bytesFromSDC) << 8 ); // first byte read is the LSB, second byte is the HSB
-	if ( i != PCM_SAMPLE_RATE ){
-		#if defined (debug)
-			Serial.print(F("WAV ERROR SAMPLE_RATE = "));
-			Serial.println(i);
-		#endif
-		return 0;
-	}
+//	// fourth check: sample rate must match user defined value, see header file...
+//	// we need to read two bytes, as sample rate is type unsigned integer
+//	// seek position 24
+//	i = player_buffer[player_currentReadBuffer][24]	| ( player_buffer[player_currentReadBuffer][25] << 8 ); // first byte read is the LSB, second byte is the HSB
+//	if ( i != PCM_SAMPLE_RATE ){
+//		#if defined (debug)
+//			Serial.print(F("WAV ERROR SAMPLE_RATE = "));
+//			Serial.println(i);
+//		#endif
+//		return 0;
+//	}
 	
 	// fifth check: bits per sample must be 8 or 16	
 	// we need to read two bytes, as bitspersample is type unsigned integer in WAV file
-	pf_lseek(34);
-	i = pf_read(0, 1, &player_bytesFromSDC) | ( pf_read(0, 1, &player_bytesFromSDC) << 8 ); // first byte read is the LSB, second byte is the HSB
+	// seek position 34
+	i = player_buffer[player_currentReadBuffer][34] | ( player_buffer[player_currentReadBuffer][35] << 8 ); // first byte read is the LSB, second byte is the HSB
 	if (i == 16){
 		player_is16bit = true;
 	}else if (i == 8){ 
@@ -265,7 +351,8 @@ bool player_checkWAVFile(char* filename){
 	}
 
 	// ok, if we came to here, file seems to be in order...	
-	pf_lseek(44); // goto start of PCM-data in WAV file
+	// seek position 44 == goto start of PCM-data in WAV file
+  readPositionInBuffer = 44;
 	return 1;
 
 }
@@ -280,6 +367,8 @@ void player_play(char* filename){
 // ####################################################################################
 void player_play(char* filename, unsigned long seekPoint){
 
+  unsigned long temp_seek_point=0;
+
 	if ( ! player_openFile(filename) ){
 		#if defined (debug)
 			Serial.println(F("WAV ERROR cannot open new file"));
@@ -287,15 +376,39 @@ void player_play(char* filename, unsigned long seekPoint){
 		return false;
 	}
 
-	// after player_checkWAVFile the sdc_File.curPosition() currently is 44, so take that into account when calculating seek position
-	if(seekPoint > 0){ 
-		if ( player_is16bit ) {
-        seekPoint = (2*PCM_SAMPLE_RATE*seekPoint) + 44;
-		} else {
-        seekPoint = (PCM_SAMPLE_RATE*seekPoint) + 44;
-		}
-		pf_lseek(seekPoint);
-	}
+	// after player_checkWAVFile() the sdc_File.curPosition() currently == 512 and readPositionInBuffer == 44
+	// also SDC-reads shall only be done in modulo512=0 steps so as to utilize SDC-buffer-pages (512 bytes each!) optimally.
+	// so take that into account when calculating seek position
+
+  // if calculated seek point is "somewhere" and less than 256 Bytes from next 512byte-chunk away, then go to this 512byte-chunk-border.
+  // eg.  seek point is 200bytes --> use 0 bytes
+  //      seek point is 387bytes --> use 512 bytes
+  //      seek point is 4567890bytes --> use 4567890/512 = 8921 * 512 + 338 --> 8922*512 = 4568064 bytes
+//	if(seekPoint > 0){ 
+//		if ( player_is16bit ) {
+//        seekPoint = (2*PCM_SAMPLE_RATE*seekPoint);
+//		} else {
+//        seekPoint = (PCM_SAMPLE_RATE*seekPoint) + 44;
+//		}
+//   
+//    temp_seek_point = seekPoint % 512;
+//    if (temp_seek_point > 255) {
+//        seekPoint += (512 - temp_seek_point);
+//    } else {
+//        seekPoint -= temp_seek_point;
+//    }
+//
+//    if ( seekPoint < 512 ) {
+//        // only move in buffer (the first buffer that is already filled because of player_checkWAVFile()
+//        if ( seekPoint < 44 ) {
+//            readPositionInBuffer = 44; // correct for metadata
+//        } else {
+//            readPositionInBuffer = seekPoint; // this should never happen: actually it should never happen, that seekpoint is >0 and < 512!
+//        }
+//    } else {
+//        pf_lseek(seekPoint);
+//    }
+//	}
 
 	player_isStopped = false;
 	player_isInterupted = false;
@@ -308,22 +421,8 @@ void player_play(char* filename, unsigned long seekPoint){
 		Serial.println(ICR1);
 	#endif
 
-	// fill one buffer with data from sdc, other buffers will be filled by ISR "BufferInterupt"
-	// block-read from SDcard
-  pf_read( (byte*)player_buffer[player_currentWriteBuffer] , PCM_BUFFER_SIZE, &player_bytesFromSDC );
-
-  // if buffer is not fully filled (i.e. pf_read reached EOF) then playing will be stopped by ISR
-  
-	player_bufferEmpty[player_currentWriteBuffer] = false;
-	// goto next buffer (or "roll over" to first buffer, if we were at the last one
-	// should not be necessary here because of clean starting setup for buffers at player_openFile()...
-	if (player_currentWriteBuffer < NUMBER_OF_PCM_BUFFERS - 1 ) { 
-		++player_currentWriteBuffer ;
-	} else { 
-		player_currentWriteBuffer = 0;
-	}
-
-  readPositionInBuffer = 0;
+	// latest here the first buffer needs to be filled.
+  // it already is, because of player_checkWWAVFile() function...
   noInterrupts();
 
 	ENABLE_BUFFER_INTERUPT;
@@ -478,8 +577,13 @@ ISR(TIMER1_CAPT_vect){
 		// but allow others
 		sei();
 
+    Serial.print("ISR ");
+    Serial.print(player_currentWriteBuffer);
+
     // block-read from SDcard
     pf_read( (byte*)player_buffer[player_currentWriteBuffer] , PCM_BUFFER_SIZE, &player_bytesFromSDC );
+
+    Serial.print(player_bytesFromSDC);
 
 		// stop playback and discard this buffer, if it is not fully filled (i.e. pf_read reached EOF)
 		if( player_bytesFromSDC < PCM_BUFFER_SIZE){
@@ -488,17 +592,19 @@ ISR(TIMER1_CAPT_vect){
 		  	player_isPlaying = false; 	
 		  	//
 		  	//		  	
-		  	// TBD. here we need to trigger an fsm action!!!
+		  	smMain.trigger(smMain_event_stop);
 		  	//
 		  	//	
   	} else {
-			player_bufferEmpty[player_currentWriteBuffer] = false;
+			//player_bufferEmpty[player_currentWriteBuffer] = false;
 			// goto next buffer (or "roll over" to first buffer, if we were at the last one
 			if (player_currentWriteBuffer < NUMBER_OF_PCM_BUFFERS - 1 ) { 
-				++player_currentWriteBuffer ;
+				player_currentWriteBuffer += 1;
 			} else { 
 				player_currentWriteBuffer = 0;
 			}
+
+      Serial.println(player_currentWriteBuffer);
 			
 			// un-hold this buffer
 			ENABLE_BUFFER_INTERUPT;			
@@ -521,22 +627,22 @@ ISR(TIMER1_OVF_vect){
 		clrPinD0_D21(ISR_PCMFEED_DEBUG_PIN);
 	#endif
 
-	if( ! player_is16bit ){
-		// if 8bit, we only write OCR1A and not OCR1B output-pins:
-		// the hardware is setup for 16bit, thus the signal would be distorted if we outbput something at OCR1B.
-		// instead we set OCR1B to 0
-		OCR1B = 0;
-		if(player_SWvolume == 5){  
-			// no bit shift necessary
-			  OCR1A = player_buffer[player_currentReadBuffer][readPositionInBuffer];
-	  	} else if(player_SWvolume > 5) {  
-			  OCR1A = player_buffer[player_currentReadBuffer][readPositionInBuffer] << (player_SWvolume - 5);
-	  	} else { 
-			  OCR1A = player_buffer[player_currentReadBuffer][readPositionInBuffer] >> player_SWvolume;
-	  	}
-	  	++readPositionInBuffer;
-
-	} else {
+//	if( ! player_is16bit ){
+//		// if 8bit, we only write OCR1A and not OCR1B output-pins:
+//		// the hardware is setup for 16bit, thus the signal would be distorted if we outbput something at OCR1B.
+//		// instead we set OCR1B to 0
+//		OCR1B = 0;
+//		if(player_SWvolume == 5){  
+//			// no bit shift necessary
+//			  OCR1A = player_buffer[player_currentReadBuffer][readPositionInBuffer];
+//	  	} else if(player_SWvolume > 5) {  
+//			  OCR1A = player_buffer[player_currentReadBuffer][readPositionInBuffer] << (player_SWvolume - 5);
+//	  	} else { 
+//			  OCR1A = player_buffer[player_currentReadBuffer][readPositionInBuffer] >> player_SWvolume;
+//	  	}
+//	  	readPositionInBuffer += 1;
+//
+//	} else {
 		// is 16bit, so we have to correct for unsigned data in the pcm-samples
 		// see https://en.wikipedia.org/wiki/WAV or https://stackoverflow.com/questions/10731226/how-to-determine-if-8bit-wav-file-is-signed-or-unsigned-using-java-and-without
 		// 	<=8 bit WAV files are always unsigned, >=9 bit are always signed
@@ -552,37 +658,39 @@ ISR(TIMER1_OVF_vect){
 		// in short: we need to add 2^8-1 = 127
 		player_buffer[player_currentReadBuffer][readPositionInBuffer] += 127;
 		
-		if (player_SWvolume == 0 ){
+		//if (player_SWvolume == 5 ){
 			// no bit shift necessary
 			OCR1A = player_buffer[player_currentReadBuffer][readPositionInBuffer];
 			OCR1B = player_buffer[player_currentReadBuffer][readPositionInBuffer+1];
-		} else if (player_SWvolume > 0 ){
-			// bit shift, we need a temporary 16bit variable for that
-			temp_OCRA_and_B_16bit_for_sw_volume_bitshift = (player_buffer[player_currentReadBuffer][readPositionInBuffer] << 8) | player_buffer[player_currentReadBuffer][readPositionInBuffer+1];
-			temp_OCRA_and_B_16bit_for_sw_volume_bitshift = temp_OCRA_and_B_16bit_for_sw_volume_bitshift << (player_SWvolume - 5);
-			OCR1A = highByte( temp_OCRA_and_B_16bit_for_sw_volume_bitshift);
-			OCR1B = lowByte(  temp_OCRA_and_B_16bit_for_sw_volume_bitshift);
-		} else {
-			// bit shift, we need a temporary 16bit variable for that
-			temp_OCRA_and_B_16bit_for_sw_volume_bitshift = (player_buffer[player_currentReadBuffer][readPositionInBuffer] << 8) | player_buffer[player_currentReadBuffer][readPositionInBuffer+1];
-			temp_OCRA_and_B_16bit_for_sw_volume_bitshift = temp_OCRA_and_B_16bit_for_sw_volume_bitshift >> player_SWvolume;
-			OCR1A = temp_OCRA_and_B_16bit_for_sw_volume_bitshift >> 8;
-			OCR1B = temp_OCRA_and_B_16bit_for_sw_volume_bitshift & B11111111;
-		}
+//		} else if (player_SWvolume > 5 ){
+//			// bit shift, we need a temporary 16bit variable for that
+//			temp_OCRA_and_B_16bit_for_sw_volume_bitshift = (player_buffer[player_currentReadBuffer][readPositionInBuffer] << 8) | player_buffer[player_currentReadBuffer][readPositionInBuffer+1];
+//			temp_OCRA_and_B_16bit_for_sw_volume_bitshift = temp_OCRA_and_B_16bit_for_sw_volume_bitshift << (player_SWvolume - 5);
+//			OCR1A = highByte( temp_OCRA_and_B_16bit_for_sw_volume_bitshift);
+//			OCR1B = lowByte(  temp_OCRA_and_B_16bit_for_sw_volume_bitshift);
+//		} else {
+//			// bit shift, we need a temporary 16bit variable for that
+//			temp_OCRA_and_B_16bit_for_sw_volume_bitshift = (player_buffer[player_currentReadBuffer][readPositionInBuffer] << 8) | player_buffer[player_currentReadBuffer][readPositionInBuffer+1];
+//			temp_OCRA_and_B_16bit_for_sw_volume_bitshift = temp_OCRA_and_B_16bit_for_sw_volume_bitshift >> player_SWvolume;
+//			OCR1A = temp_OCRA_and_B_16bit_for_sw_volume_bitshift >> 8;
+//			OCR1B = temp_OCRA_and_B_16bit_for_sw_volume_bitshift & B11111111;
+//		}
 		// two-byte-samples because of 16bit PCM
-  		readPositionInBuffer+=2;
-  	}
+  	readPositionInBuffer += 2 ;
+//  } 
 
-  	if(readPositionInBuffer >= PCM_BUFFER_SIZE){
-		readPositionInBuffer = 0;
-		player_bufferEmpty[player_currentReadBuffer] = true;
-		// goto next buffer (or "roll over" to first buffer, if we were at the last one
-		if (player_currentReadBuffer < NUMBER_OF_PCM_BUFFERS - 1 ) { 
-			++player_currentReadBuffer;
-		} else { 
-			player_currentReadBuffer = 0;
-		}
+  if(readPositionInBuffer >= PCM_BUFFER_SIZE){
+  	readPositionInBuffer = 0;
+  	player_bufferEmpty[player_currentReadBuffer] = true;
+  	// goto next buffer (or "roll over" to first buffer, if we were at the last one
+  	if (player_currentReadBuffer < NUMBER_OF_PCM_BUFFERS - 1 ) { 
+  			player_currentReadBuffer += 1;
+  	} else { 
+  			player_currentReadBuffer = 0;
   	}
+  }
+
+  //Serial.println(player_currentReadBuffer);
   	
   	//ludgerknorps debug: wie viele Microsekunden zwischen PWM Interupt Aufrufen
   	//~ if (myMicrosCounter < 10) {

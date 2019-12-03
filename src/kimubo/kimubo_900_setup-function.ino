@@ -40,12 +40,53 @@
 
 	void setup() {
 
+    // initialize serial communication at 9600 bits per second:
+    Serial.begin(38400);
+    Serial.println(F("Hello to the world of KIMUBO!"));
+
+    #if defined (debug)
+        Serial.print(F("SETUP INFO ; 001 FREE RAM "));
+        Serial.println(freeRam());      
+        //check_mem();      
+        Serial.print(F("FSM   INFO ; 005 Stackpointer / Heappointer "));      
+        Serial.print( (int) SP, HEX);       
+        Serial.print(F(" / "));       
+        Serial.println( (int) (SPH << 8 | SPL), HEX);
+    #endif
+    
+    // #################################################################################### 
 		// Setup of Keypad/keyboard
 
 		keypad.setHoldTime(KEYB_HOLD_TIME);
 		keypad.setDebounceTime(KEYB_DEBOUNCE_TIME);
 		// add an event listener 
 		keypad.addEventListener(keypad_callback_onEvent); 
+
+    #if defined (debug)
+        Serial.print(F("SETUP INFO ; 002 FREE RAM "));
+        Serial.println(freeRam());      
+        //check_mem();      
+        Serial.print(F("FSM   INFO ; 005 Stackpointer / Heappointer "));      
+        Serial.print( (int) SP, HEX);       
+        Serial.print(F(" / "));       
+        Serial.println( (int) (SPH << 8 | SPL), HEX);
+    #endif
+
+    // #################################################################################### 
+    // Setup of fsmMain
+    smMain_init_stateMachine();
+
+    #if defined (debug)
+        Serial.print(F("SETUP INFO ; 003 FREE RAM "));
+        Serial.println(freeRam());      
+        //check_mem();      
+        Serial.print(F("FSM   INFO ; 005 Stackpointer / Heappointer "));      
+        Serial.print( (int) SP, HEX);       
+        Serial.print(F(" / "));       
+        Serial.println( (int) (SPH << 8 | SPL), HEX);
+    #endif
+
+    myTime = 0;
 
 	} // setup()
   
