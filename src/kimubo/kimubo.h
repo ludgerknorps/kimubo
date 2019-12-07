@@ -292,10 +292,10 @@
 			static const byte KEYB_PIN_COLUMN2  = 7;
 			static const byte KEYB_PIN_COLUMN3  = 6;
 			static const byte KEYB_PIN_COLUMN4  = 5;
-			static const byte KEYB_PIN_ROW1   = A3;  // used as digital pin
-			static const byte KEYB_PIN_ROW2   = A2;    // used as digital pin
-			static const byte KEYB_PIN_ROW3   = A1;    // used as digital pin
-			static const byte KEYB_PIN_ROW4   = A0;    // used as digital pin
+			static const byte KEYB_PIN_ROW1   = A0;  // used as digital pin
+			static const byte KEYB_PIN_ROW2   = A1;    // used as digital pin
+			static const byte KEYB_PIN_ROW3   = A2;    // used as digital pin
+			static const byte KEYB_PIN_ROW4   = A3;    // used as digital pin
 			
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

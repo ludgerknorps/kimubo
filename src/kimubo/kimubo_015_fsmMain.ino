@@ -88,9 +88,9 @@
             Serial.println(F("smMain STATE init"));
         #endif
 				
-				if (  sdc_setup() &&
-				      keyb_setup() &&
-              player_setup()
+				if (  //sdc_setup() &&
+				      keyb_setup() //&&
+              //player_setup()
 				   ){
             #if defined (debug)
                 Serial.println(F("smMain STATE init I'm triggering..."));
@@ -190,6 +190,9 @@
           Serial.println(keyb_current_playListKey);   
         #endif
 
+        // TBDremove
+        return;
+
         // goto right dir on sdc
         // open first file e.g. "0.WAV"
         // start playing at begin of file 0
@@ -243,6 +246,12 @@
 				#if defined (debug)
           Serial.println(F("smMain TRANSITION B2"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         // select next track (stay in same dir/playlist)
         if ( player_current_track == player_track_number_max[atoi(player_current_playlist_dirname)] ){
             player_stop(); // there is no further file in this dir
@@ -269,6 +278,12 @@
 			  #if defined (debug)
           Serial.println(F("smMain TRANSITION B3"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         // goto right dir on sdc
         // open first file e.g. "0.WAV" 
         // start playing at begin of file 0
@@ -316,6 +331,12 @@
 			  #if defined (debug)
           Serial.println(F("smMain TRANSITION D1"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         player_pause();
 		}
 		
@@ -324,6 +345,12 @@
 			  #if defined (debug)
           Serial.println(F("smMain TRANSITION D2"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         player_pause();
 		}
 
@@ -332,6 +359,12 @@
         #if defined (debug)
           Serial.println(F("smMain TRANSITION E1"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         // select next track (stay in same dir/playlist)
         if ( player_current_track == player_track_number_max[atoi(player_current_playlist_dirname)] ){
             // there is no further file in this dir
@@ -360,6 +393,12 @@
         #if defined (debug)
           Serial.println(F("smMain TRANSITION E2"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         // select previous track (stay in same dir/playlist)
         // or go back to begin of current track, if playtime < 1sek.
 
@@ -401,6 +440,12 @@
         #if defined (debug)
           Serial.println(F("smMain TRANSITION F2"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         player_pause();
     }
     
@@ -409,6 +454,12 @@
         #if defined (debug)
           Serial.println(F("smMain TRANSITION F5"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         player_pause();
     }
 
@@ -417,6 +468,12 @@
         #if defined (debug)
           Serial.println(F("smMain TRANSITION G1"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         player_pause();
     }
     
@@ -425,6 +482,12 @@
         #if defined (debug)
           Serial.println(F("smMain TRANSITION G2"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         player_pause();
     }
 
@@ -433,6 +496,12 @@
         #if defined (debug)
           Serial.println(F("smMain TRANSITION G4"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         player_pause();
     }
     
@@ -441,6 +510,12 @@
         #if defined (debug)
           Serial.println(F("smMain TRANSITION G5"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         player_pause();
     }
 
@@ -449,6 +524,12 @@
         #if defined (debug)
           Serial.println(F("smMain TRANSITION G6"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         player_pause();
     }
     
@@ -457,6 +538,12 @@
         #if defined (debug)
           Serial.println(F("smMain TRANSITION G7"));
         #endif
+
+        // TBDremove
+        return;
+
+
+        
         player_pause();
     }
 
@@ -497,7 +584,7 @@
       // --------- PLAYING / play a track and at end of track continue with next track ---------
       
       // B1 transitions idle to playWav (normal player, not messages)
-      // start playing something
+      //  
         smMain.add_transition(  &smMain_state_idle,  
                   &smMain_state_playWav,  
                   smMain_event_playWav,  
@@ -613,7 +700,7 @@
                       &smMain_trans_F5_onTransition); 
                         
       // F6 transitions seekBack to playWav
-      // we were seeking and now return to play
+      // we were seeking back and now return to play
         smMain.add_transition(  &smMain_state_seekBack,  
                   &smMain_state_playWav,  
                   smMain_event_continue,  

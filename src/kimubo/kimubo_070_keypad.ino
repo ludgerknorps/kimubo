@@ -102,20 +102,29 @@
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
 	// 9. the eventListener callback function for different types of keys
+
+    void DEBUG_keypad_callback_onEvent( char key){
+        switch (keypad.getState()){
+          case PRESSED:
+            Serial.print(F("PRESSED "));
+            Serial.println(key);
+            break; // we don't react on keypressing, only on holding and especially on releasing a key
+            
+          case HOLD:
+            Serial.print(F("HOLD "));
+            Serial.println(key);
+            break;
+        
+          case RELEASED:
+            Serial.print(F("RELEASED "));
+            Serial.println(key);
+            break;
+        }
+    }
+    
 	
 		void keypad_callback_onEvent( char key){
-			// if more than one key is pressed, then
-			// don't do anything with pressed keys
-			// don't react on released keys
 			
-			// even better way: redefine LIST_MAX to be 1
-			// then only one key can be added to keys-list. :-)
-			
-			if ( keypad.numKeys() > 1 ) {
-				keybPressedKey = NULL; // if several keys are pressed together, don't do anything, thus forget pressed/held keys and clear all keys from keylist.
-				keybHeldKey = NULL;
-				keypad.clearList();
-			} else {
 
 				switch (keypad.getState()){
 					case PRESSED:
@@ -200,7 +209,7 @@
 						keybHeldKey = NULL;
 						break;
 				} // switch
-			} // if
+
 		} // keypadEvent
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
