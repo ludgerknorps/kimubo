@@ -334,7 +334,7 @@
 			  { KEYSCAN_1,    KEYSCAN_2,    KEYSCAN_3,      KEYSCAN_STAT  },
 			  { KEYSCAN_4,    KEYSCAN_5,    KEYSCAN_6,      KEYSCAN_SLEEP },
 			  { KEYSCAN_7,    KEYSCAN_8,    KEYSCAN_9,      KEYSCAN_LOUD  },
-			  { KEYSCAN_FFWD, KEYSCAN_REW,  KEYSCAN_A,    	KEYSCAN_B   }
+			  { KEYSCAN_REW,  KEYSCAN_FFWD, KEYSCAN_A,    	KEYSCAN_B   }
 			};
 		  
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

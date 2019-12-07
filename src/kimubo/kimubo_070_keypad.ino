@@ -144,61 +144,82 @@
 
 					case RELEASED:
 						// Handle errors:
-						// 1. case: 
-							if (key != keybPressedKey) {
-								// this must never happen : how should keybPressedKey != key, if only one key is allowed AND one key was released?
-								break;
-							}
-						// 2. case:
-							if ( (keybHeldKey != NULL) && (key != keybHeldKey) ) {
-								// this must never happen: how should keybHeldKey != key, if only one key is allowed AND one key was released?
-								break;
-							}
-						// if we came to here, then no errors apparent
+//						// 1. case: 
+//							if (key != keybPressedKey) {
+//								// this must never happen : how should keybPressedKey != key, if only one key is allowed AND one key was released?
+//								break;
+//							}
+//						// 2. case:
+//							if ( (keybHeldKey != NULL) && (key != keybHeldKey) ) {
+//								// this must never happen: how should keybHeldKey != key, if only one key is allowed AND one key was released?
+//								break;
+//							}
+//						// if we came to here, then no errors apparent
 					
-						if (key >= '1' && key <='9') {
+						if (key >= KEYSCAN_1 && key <=KEYSCAN_9) {
 							if (keybHeldKey == NULL) {
 								// key released after pressed but not held
 								// play playlist nr. <key> from beginning
 
+                Serial.print(F("RELEASED "));
+                Serial.println(key);
+                
                 // remember what key/playlist we want to play as event-triggers for statemachine are stateless (have no memory)
                 keyb_current_playListKey = key;
                 
                 // if player is playing we use transition B3 in smMain, else we use transition B1
                 smMain.trigger(smMain_event_playOtherPlaylist); // B3-case
                 smMain.trigger(smMain_event_playWav); // B1-case
+                
             } else {
 								// key released after held
 								// play playlist nr. <key> from stored position (from EEPROM)
                 // TBD for later release!
+                Serial.print(F("RELEASED AFTER HOLD "));
+                Serial.println(key);
+                
 							} 
-						} else if (key=='F') {
+						} else if (key==KEYSCAN_FFWD) {
 							if (keybHeldKey == NULL) {
 								// key released after pressed but not held
 								// skip to next track in playlist
+
+                Serial.print(F("RELEASED "));
+                Serial.println(key);
+               
                 smMain.trigger(smMain_event_skip); // E1 transition in smMain
 							} else if (key == keybHeldKey) {
 								// key released after held
 								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
+
+                Serial.print(F("RELEASED AFTER HOLD "));
+                Serial.println(key);
 							}
-						} else if (key=='B') {
+						} else if (key==KEYSCAN_REW) {
 							if (keybHeldKey == NULL) {
 								// key released after pressed but not held
 								// skip to previous track in playlist
+                
+                Serial.print(F("RELEASED "));
+                Serial.println(key);
+                
                 smMain.trigger(smMain_event_skipBack); // E2 transition in smMain
 							} else if (key == keybHeldKey) {
 								// key released after held
 								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
+
+                Serial.print(F("RELEASED AFTER HOLD "));
+                Serial.println(key);
 							}
-						} else if (key=='S') {
+						} else if (key==KEYSCAN_SLEEP) {
 							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
 							// setSleeper()
               // TBD later release
-						} else if (key=='L') {
+						} else if (key==KEYSCAN_LOUD) {
 							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
 							// setLoudness()
               // TBD later release
-						} else if (key=='Z') {
+						} else if (key==KEYSCAN_STAT) {
 							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
 							// tellStatus()
               // TBD later release
