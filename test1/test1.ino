@@ -1,44 +1,52 @@
 
-#define SERIAL_RX_BUFFER_SIZE 64
-#define SERIAL_TX_BUFFER_SIZE 64
-
-
-#include <LKpcmConfig.h>
+#include <LKpcm_UserConfig.h>
 
 
 #include <SD.h>              // need to include the SD library
-#define SD_ChipSelectPin 4    
-// pin 14 == A0    
+#define SD_ChipSelectPin 4       
 #include <Arduino.h>
 
 
 
-#include <LKpcm_atmega328_timer1.h>          
+#include <LKpcm.h>          
 #include <SPI.h>
-
-//#include <SdFat.h>
 
 
 LKpcm lkpcm;   // create an object for use in this sketch
 
 unsigned long time = 0;
 
+
+// define what suffix all PCM/WAV files need to have on the SD-card.
+// relevant for "normal" PCM files as well as message-files.
+const char SUFFIX_PCM_FILES[5] = ".WAV";
+
+// where on SDcard are all our files stored?
+// we use hard-fixed "/", no user-definable variable!
+
+// define how the subdir is named, that holds system-message-pcm-files
+// relevant for "normal" PCM files as well as message-files.
+const char SDC_SYSTEM_MESSAGES_DIR[7] = "SYSTEM";
+
+
 void setup(){
 
-	// PWM pins pair MSB=9 LSB=10, together 16bit PWM :-)
-  lkpcm.definePWMPins(9, 10); 
-  
-  Serial.begin(9600);
-  pinMode(13,OUTPUT); //LED Connected to analog pin 0
-  if (!SD.begin(SD_ChipSelectPin)) {  // see if the card is present and can be initialized:
-    Serial.println(F("SD fail _ _ _"));  
-    return;   // don't do anything more if not
+    Serial.begin(9600);
 
-  }
-  else{   
-    Serial.println(F("SD ok"));   
-  }
-  lkpcm.play("/1/1.WAV"); //the sound file "music" will play each time the arduino powers up, or is reset 
+  	// PWM pins pair MSB=9 LSB=10, together 16bit PWM :-)
+    lkpcm.setupPlayer(9, 10); 
+
+
+    pinMode(13,OUTPUT); //LED Connected to analog pin 0
+    if (!SD.begin(SD_ChipSelectPin)) {  // see if the card is present and can be initialized:
+        Serial.println(F("SD fail _ _ _"));  
+        return;   // don't do anything more if not
+
+    }
+    else{   
+        Serial.println(F("SD ok"));   
+    }
+    lkpcm.play("/1/1.WAV"); 
 
  
 }
@@ -49,7 +57,7 @@ void setup(){
 
 
 void loop(){  
-  if( !isPlaying() ) {      
+  if( !lkpcm_isPlaying ) {      
           
       //lkpcm.stopPlayback();
       //Serial.println(F("STOPPED"));  
@@ -68,7 +76,7 @@ void loop(){
     case 'r': lkpcm.play("/1/4.WAV"); Serial.println(F("4 is being played"));   break;
     case 't': lkpcm.play("/1/5.WAV"); Serial.println(F("5 is being played"));  break;
     case 'p': lkpcm.pause(); break;
-    case '?': if(isPlaying()){ Serial.println(F("A wav file is being played"));} break;
+    case '?': if(lkpcm_isPlaying){ Serial.println(F("A wav file is being played"));} break;
     case 'S': lkpcm.stopPlayback(); time = millis(); Serial.println(F("STOPPED manually"));  break;
     case '+': lkpcm.volume(1); break;
     case '-': lkpcm.volume(0); break;
