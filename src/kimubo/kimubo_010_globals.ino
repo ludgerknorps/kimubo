@@ -88,6 +88,10 @@
 
 		// global variables	
 
+      // Our Player instance
+      static LKpcm player;
+      
+
       // player needs to know a) current playlist/dir and b) current track/file and - only for interupts by system-messages - also needs to remember c) postition-of-interupt
       // we only have playlists '0' to '8' thus length of the playlist-string must be 1
       static char player_current_playlist_dirname;
@@ -110,72 +114,10 @@
       volatile byte player_track_number_max[9]; // one array field per playlist (we dont need that for "systemmessages").
 
     
-			// array of buffers for PCM data coming from SDC
-			volatile byte player_buffer[NUMBER_OF_PCM_BUFFERS][PCM_BUFFER_SIZE];
-			
-			// array-index-"pointer" to buffer from to points of view: a) I want to read buffer, b) I want to write buffer
-			// we write to other buffer than reading from, it is a buffer after all ...
-			volatile byte player_currentReadBuffer = 0;
-			volatile byte player_currentWriteBuffer = 0;
-			// flags for status of each buffer (full/empty --> non-writable/writable)
-			volatile bool player_bufferEmpty[NUMBER_OF_PCM_BUFFERS];
-			// writing is doneblock-wise in blocks of PCM_BUFFER_SIZE, but reading is done byte-wise (or double-byte-wise in case of 16bit PCM)
-			// thus, we need a position-"pointer" (array-index) for intra-buffer
-			volatile byte readPositionInBuffer = 0;
-
-      // petitfs delivers how many bytes were read into a variable
-      volatile unsigned int player_bytesFromSDC = 0;
-
-			bool player_is16bit = false;
-			bool player_isPaused = false;
-			volatile bool player_isPlaying = false; // must be volatile because we change it from inside the ISR at end of a file
-			bool player_isStopped = false;
-			bool player_isInterupted = false;
-
-			byte player_SWvolume = 5; // software volume range is 0 (most silent) to 9 (max volume), default value is 5 (middle)
-			
-			volatile unsigned int temp_OCRA_and_B_16bit_for_sw_volume_bitshift = 0;
-			
-		// global public functions (because of ISR we cannot put them easily into a class!)
-			
-			// general "make ready" functions
-      bool player_setup();
-      
-			void player_setupPWMPins();
-			void player_setupTimers();
-			
-			// setup/reset buffers
-			void player_setupBuffers();
-
-			bool player_openFile(char* filename);
-			bool player_checkWAVFile(char* filename);
-			
-			void player_play(char* filename);
-			void player_play(char* filename, unsigned long seekPoint);
-			void player_stop();
-			void player_pause();
-			
-			// set Volume goes from 0 .. 8 with 4 being default (= interprets the pcm data without  amplification or reduction)
-			void player_setVolume(byte vol);
-
-      // Helper function: make filename from current_track_number
+			// Helper function: make filename from current_track_number
       void get_new_track_player_filename();
 
-			// we want to 
-			// 1) use several helper-functions in order to clean up the code and
-			// 2) on the other side don't want to use function calls inside of ISR (wherever possible) because of performance impacts and
-			// 3) we do want to code behaviour only oncc.
-			// Thus - allthough is is not optimal coding style - we declare macros, use them inside of functions and inside ISR as well
-
-			#define ENABLE_BUFFER_INTERUPT			(TIMSK1 |= _BV(ICIE1))
-			#define DISABLE_BUFFER_INTERUPT			(TIMSK1 &= ~_BV(ICIE1))
-			#define ENABLE_PCM_FEED_INTERUPT		(TIMSK1 |= _BV(TOIE1))
-			#define DISABLE_PCM_FEED_INTERUPT		(TIMSK1 &= ~_BV(TOIE1))
 			
-			
-			// additional debugging functions
-			//void player_sendRecordedMicros();
-
 
 // ####################################################################################
 // ####################################################################################
@@ -210,9 +152,7 @@
  * Abschnitt SD Card
  */
     
-    // PetitFS
-    // File system object.
-        FATFS sdc_fileSystem;
+    // SD already provides instance
 
     // functions
 		bool sdc_setup();

@@ -87,10 +87,10 @@
 				#if defined (debug)
             Serial.println(F("smMain STATE init"));
         #endif
-				
-				if (  //sdc_setup() &&
-				      keyb_setup() //&&
-              //player_setup()
+
+				if (  sdc_setup() &&
+				      keyb_setup() &&
+              player.setupPlayer(9, 10)
 				   ){
             #if defined (debug)
                 Serial.println(F("smMain STATE init I'm triggering..."));
@@ -112,7 +112,7 @@
           Serial.println(F("smMain ENTERED STATE idle"));
         #endif
         
-        player_stop();
+        player.stopPlayback();
 		}
 
     /* =========================================================== */
@@ -122,10 +122,12 @@
           Serial.println(F("smMain ENTERED STATE playWav"));
         #endif
 
+        player.play("/1/1.WAV");
+
         // in one of the transition actions (or even before them) we started playing, if everything went right and there is a (potentially next) file to play.
         // so right now, we should be playing.
         // if not, then there was no (next) file --> we now need to switch to state idle as we are stopped.
-        if ( ! player_isPlaying ){
+        if ( ! lkpcm_isPlaying ){
             smMain.trigger(smMain_event_stop);
         } else {
             // do nothing, the ISRs are pumping the music out :-)
@@ -219,19 +221,19 @@
                 Serial.println(player_current_track_filename);
             #endif
             
-            if ( pf_open(player_current_track_filename) == FR_OK ){
-                player_play(player_current_track_filename);
-                #if defined (debug)
-                    Serial.print(F("smMain TRANSITION B1 INFO playing playlist/file "));
-                    Serial.println(player_current_track_filename);   
-                #endif
-            } else {
-                player_stop(); // cannot open file?!
-                #if defined (debug)
-                    Serial.print(F("smMain TRANSITION B1 ERROR cannot open file? "));
-                    Serial.println(player_current_track_filename);   
-                #endif
-            }
+//            if ( pf_open(player_current_track_filename) == FR_OK ){
+//                player_play(player_current_track_filename);
+//                #if defined (debug)
+//                    Serial.print(F("smMain TRANSITION B1 INFO playing playlist/file "));
+//                    Serial.println(player_current_track_filename);   
+//                #endif
+//            } else {
+//                player.stopPlayback(); // cannot open file?!
+//                #if defined (debug)
+//                    Serial.print(F("smMain TRANSITION B1 ERROR cannot open file? "));
+//                    Serial.println(player_current_track_filename);   
+//                #endif
+//            }
         } else {
             // no file in dir --> do nothing, as player is not playing it will immediatly go back to idle.
             #if defined (debug)
@@ -254,18 +256,18 @@
         
         // select next track (stay in same dir/playlist)
         if ( player_current_track == player_track_number_max[atoi(player_current_playlist_dirname)] ){
-            player_stop(); // there is no further file in this dir
+            player.stopPlayback(); // there is no further file in this dir
             #if defined (debug)
                 Serial.print(F("smMain TRANSITION B2 INFO player stopped after last file in dir "));
                 Serial.println(player_current_track_filename);   
             #endif
         } else {
             // ok, there IS another file, but it need not be the sequential next one...
-            do {
-                player_current_track++;
-                get_new_track_player_filename();
-            } while (pf_open(player_current_track_filename) != FR_OK);
-            player_play(player_current_track_filename);
+//            do {
+//                player_current_track++;
+//                get_new_track_player_filename();
+//            } while (pf_open(player_current_track_filename) != FR_OK);
+            player.play(player_current_track_filename);
             #if defined (debug)
                 Serial.print(F("smMain TRANSITION B2 INFO playing playlist/file "));
                 Serial.println(player_current_track_filename);   
@@ -304,11 +306,11 @@
                   player_current_track = player_track_number_min[atoi(player_current_playlist_dirname)];
       
                   get_new_track_player_filename();
-                  if ( pf_open(player_current_track_filename) == FR_OK ){
-                      player_play(player_current_track_filename);
-                  } else {
-                      player_stop(); // cannot open file?!
-                  }
+//                  if ( pf_open(player_current_track_filename) == FR_OK ){
+//                      player.play(player_current_track_filename);
+//                  } else {
+//                      player.stopPlayback(); // cannot open file?!
+//                  }
               } else {
                   // no file in dir --> do nothing, player keeps playing previous playlist/track
                   #if defined (debug)
@@ -335,9 +337,6 @@
         // TBDremove
         return;
 
-
-        
-        player_pause();
 		}
 		
 		/* =========================================================== */
@@ -349,9 +348,6 @@
         // TBDremove
         return;
 
-
-        
-        player_pause();
 		}
 
    /* =========================================================== */
@@ -376,11 +372,11 @@
             #endif
         } else {
             // ok, there IS another file, but it need not be the sequential next one...
-            do {
-                player_current_track++;
-                get_new_track_player_filename();
-            } while (pf_open(player_current_track_filename) != FR_OK);
-            player_play(player_current_track_filename);
+//            do {
+//                player_current_track++;
+//                get_new_track_player_filename();
+//            } while ;  //(pf_open(player_current_track_filename) != FR_OK);
+            player.play(player_current_track_filename);
             #if defined (debug)
                 Serial.print(F("smMain TRANSITION E1 INFO playing playlist/file "));
                 Serial.println(player_current_track_filename);   
@@ -402,36 +398,36 @@
         // select previous track (stay in same dir/playlist)
         // or go back to begin of current track, if playtime < 1sek.
 
-        if (  sdc_fileSystem.fptr <= ( (player_is16bit ? 2 : 1) * PCM_SAMPLE_RATE) ) {
-            // go back to begin of current track
-            player_play(player_current_track_filename);
-            #if defined (debug)
-                Serial.print(F("smMain TRANSITION E2 INFO skipback requested at begin of a track --> go back to begin of current track "));
-                Serial.println(player_current_track_filename);   
-            #endif
-        } else {
-            if ( player_current_track == player_track_number_min[atoi(player_current_playlist_dirname)] ){
-                // there is no previous file in this dir
-                // skip back to beginning of this first track
-                player_play(player_current_track_filename);
-                #if defined (debug)
-                    Serial.print(F("smMain TRANSITION E2 INFO skipback requested at first track in playlist --> go back to begin of this first track "));
-                    Serial.println(player_current_track_filename);   
-                #endif
-            } else {
-                // ok, there IS a privious file, but it need not be the sequential next one...
-                do {
-                    player_current_track--;
-                    get_new_track_player_filename();
-                } while (pf_open(player_current_track_filename) != FR_OK);
-                player_play(player_current_track_filename);
-                #if defined (debug)
-                    Serial.print(F("smMain TRANSITION E2 INFO playing playlist/file "));
-                    Serial.println(player_current_track_filename);   
-                #endif 
-                
-            }
-        }
+//        if (  sdc_fileSystem.fptr <= ( (player_is16bit ? 2 : 1) * PCM_SAMPLE_RATE) ) {
+//            // go back to begin of current track
+//            player.play(player_current_track_filename);
+//            #if defined (debug)
+//                Serial.print(F("smMain TRANSITION E2 INFO skipback requested at begin of a track --> go back to begin of current track "));
+//                Serial.println(player_current_track_filename);   
+//            #endif
+//        } else {
+//            if ( player_current_track == player_track_number_min[atoi(player_current_playlist_dirname)] ){
+//                // there is no previous file in this dir
+//                // skip back to beginning of this first track
+//                player.play(player_current_track_filename);
+//                #if defined (debug)
+//                    Serial.print(F("smMain TRANSITION E2 INFO skipback requested at first track in playlist --> go back to begin of this first track "));
+//                    Serial.println(player_current_track_filename);   
+//                #endif
+//            } else {
+//                // ok, there IS a privious file, but it need not be the sequential next one...
+////                do {
+////                    player_current_track--;
+////                    get_new_track_player_filename();
+////                } while ; //(pf_open(player_current_track_filename) != FR_OK);
+//                player.play(player_current_track_filename);
+//                #if defined (debug)
+//                    Serial.print(F("smMain TRANSITION E2 INFO playing playlist/file "));
+//                    Serial.println(player_current_track_filename);   
+//                #endif 
+//                
+//            }
+//        }
         
     }
 
@@ -444,9 +440,6 @@
         // TBDremove
         return;
 
-
-        
-        player_pause();
     }
     
     /* =========================================================== */
@@ -458,9 +451,6 @@
         // TBDremove
         return;
 
-
-        
-        player_pause();
     }
 
     /* =========================================================== */
@@ -472,9 +462,6 @@
         // TBDremove
         return;
 
-
-        
-        player_pause();
     }
     
     /* =========================================================== */
@@ -486,9 +473,6 @@
         // TBDremove
         return;
 
-
-        
-        player_pause();
     }
 
     /* =========================================================== */
@@ -500,9 +484,6 @@
         // TBDremove
         return;
 
-
-        
-        player_pause();
     }
     
     /* =========================================================== */
@@ -514,9 +495,6 @@
         // TBDremove
         return;
 
-
-        
-        player_pause();
     }
 
     /* =========================================================== */
@@ -528,9 +506,6 @@
         // TBDremove
         return;
 
-
-        
-        player_pause();
     }
     
     /* =========================================================== */
@@ -542,9 +517,6 @@
         // TBDremove
         return;
 
-
-        
-        player_pause();
     }
 
 
