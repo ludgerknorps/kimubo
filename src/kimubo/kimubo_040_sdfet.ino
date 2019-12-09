@@ -23,7 +23,11 @@
  */
  
 bool sdc_setup(){
-    if (!SD.begin(SD_ChipSelectPin)) {  // see if the card is present and can be initialized:
+    //SDFAT
+    //if (!SD.begin(SD_ChipSelectPin)) {  // see if the card is present and can be initialized:
+    // Initialize at the highest speed supported by the board that is
+    // not over 50 MHz. Try a lower speed if SPI errors occur.
+    if (!sd.begin(SDC_PIN_CS, SD_SCK_MHZ(50))) {
         Serial.println(F("SD fail _ _ _"));  
         return false;   // don't do anything more if not
     

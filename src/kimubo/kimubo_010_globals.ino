@@ -89,7 +89,7 @@
 		// global variables	
 
       // Our Player instance
-      static LKpcm player;
+        static LKpcm player;
       
 
       // player needs to know a) current playlist/dir and b) current track/file and - only for interupts by system-messages - also needs to remember c) postition-of-interupt
@@ -152,7 +152,9 @@
  * Abschnitt SD Card
  */
     
-    // SD already provides instance
+    // File system object.
+    SdFat sd;    
+
 
     // functions
 		bool sdc_setup();

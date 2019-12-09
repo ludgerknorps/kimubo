@@ -34,14 +34,10 @@
 #include "local.lib/Keypad/src/Key.h"
 #include "local.lib/Keypad/src/Key.cpp"
 
-//#include "local.lib/arduino-fsm/Fsm.h"
-//#include "local.lib/arduino-fsm/Fsm.cpp"
-#include <Fsm.h>
-
 // wir verwenden das Arduino Pro Mini interne EEPROM zum speichern von Einstellungen
 #include <EEPROM.h>
 
-#include <SD.h>              // need to include the SD library
+#include <SdFat.h>              // need to include the SD library
 #include <LKpcm.h>    
 
 
