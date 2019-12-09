@@ -56,7 +56,7 @@
 
     sdc_setup();
     keyb_setup();
-    player.setupPlayer(9, 10);
+    player.setupPlayer(AUDIO_PIN_OUT_HIGH, AUDIO_PIN_OUT_LOW);
 
     player.play("/1/1.WAV");
 

@@ -28,12 +28,16 @@ bool sdc_setup(){
     // Initialize at the highest speed supported by the board that is
     // not over 50 MHz. Try a lower speed if SPI errors occur.
     if (!sd.begin(SDC_PIN_CS, SD_SCK_MHZ(50))) {
-        Serial.println(F("SD fail _ _ _"));  
+        #if defined (debug)
+            Serial.println(F("SD fail _ _ _"));  
+        #endif
         return false;   // don't do anything more if not
     
     }
     else{   
-        Serial.println(F("SD ok"));   
+        #if defined (debug)
+            Serial.println(F("SD ok"));
+        #endif   
     }
 
     return true;

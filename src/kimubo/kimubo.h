@@ -64,7 +64,7 @@
 	 */
 
 		// defining debug --> serial output delivers information on internals, timing and cpu load may be a little of compared to non-debug-mode
-		#define debug
+    #define debug
 
 
   // ####################################################################################
@@ -123,22 +123,6 @@
 	 * Abschnitt PCM player
 	 */
 
-
-		// User defined constants	
-			#define NUMBER_OF_PCM_BUFFERS 	2  	
-			// how many pcm buffers, do we use? 
-			// each can be max 256 bytes big (because it is addressed by a byte-type). 
-			// buffer size must be even number.
-			// all together must fit into RAM. 
-			// All buffers together form one big "semi-ring-buffer".
-			#define PCM_BUFFER_SIZE 		    256  
-			// must be even number (because of 16bit == 2 byte read at-a-time)	 
-		
-		
-			//static const unsigned int 	PCM_SAMPLE_RATE	= 24000;
-			static const unsigned int 	PCM_SAMPLE_RATE	= 16000;	// we aim to reach that in later sprint... (only possible with F_CPU == 20MHz!)
-		
-
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -146,21 +130,7 @@
 			// pins are Arduino pin nr.	
 			#define AUDIO_PIN_OUT_HIGH		9 
 			#define AUDIO_PIN_OUT_LOW		10
-			
-			
-		//ludgerknorps debug: wie viele Microsekunden zwischen PWM Interupt Aufrufen
-			//static unsigned long myMicros[10];
-			//static byte myMicrosCounter = 0;
-		
-		//ludgerknorps ISR-debug
-			// Interupt-debug: 	at begin of each ISR, one pin (for each interupt) is set low; at end of ISR the pin is set to high again.
-			// 					this is for debugging the exact timing via e.g. oscilloscope or logic analyzer
-			// ATTENTION: uses fast-setpin-macros, beware of using pins that are used for something else, no checks are done!
-				// pin A4 = pin D18, pin A5 = pin D19!
-				//#define ISR_BUFFER_DEBUG_PIN 	4
-				//#define ISR_PCMFEED_DEBUG_PIN	6
 
-	 
 	// ####################################################################################
 	// ####################################################################################
 	// ####################################################################################
@@ -346,10 +316,6 @@
 			#define KEYB_HOLD_TIME  500 
 			//Set the amount of milliseconds the keypad will wait until it accepts a new keypress/keyEvent. This is the "time delay" debounce method.  (default = 10)
 			#define KEYB_DEBOUNCE_TIME  10  		
-			 
-
-
-
 
 	// ####################################################################################
 	// ####################################################################################
@@ -399,10 +365,7 @@
 	 * Abschnitt SDCard
 	 */
 
-
-
     #define SD_ChipSelectPin 4 
-
 
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -432,11 +395,4 @@
       // relevant for "normal" PCM files as well as message-files.
       const char SDC_SYSTEM_MESSAGES_DIR[7] = "SYSTEM";
 
-
-			
-
-
-
-		
-		
 #endif // KIMUBO_H definition
