@@ -60,7 +60,6 @@
 
     player.play("/1/1.WAV");
 
-    myTime = 0;
 
 	} // setup()
   
