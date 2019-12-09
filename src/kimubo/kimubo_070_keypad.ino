@@ -168,8 +168,8 @@
                 keyb_current_playListKey = key;
                 
                 // if player is playing we use transition B3 in smMain, else we use transition B1
-                smMain.trigger(smMain_event_playOtherPlaylist); // B3-case
-                smMain.trigger(smMain_event_playWav); // B1-case
+//                smMain.trigger(smMain_event_playOtherPlaylist); // B3-case
+//                smMain.trigger(smMain_event_playWav); // B1-case
                 
             } else {
 								// key released after held
@@ -187,7 +187,7 @@
                 Serial.print(F("RELEASED "));
                 Serial.println(key);
                
-                smMain.trigger(smMain_event_skip); // E1 transition in smMain
+//                smMain.trigger(smMain_event_skip); // E1 transition in smMain
 							} else if (key == keybHeldKey) {
 								// key released after held
 								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
@@ -203,7 +203,7 @@
                 Serial.print(F("RELEASED "));
                 Serial.println(key);
                 
-                smMain.trigger(smMain_event_skipBack); // E2 transition in smMain
+//                smMain.trigger(smMain_event_skipBack); // E2 transition in smMain
 							} else if (key == keybHeldKey) {
 								// key released after held
 								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
@@ -263,22 +263,22 @@
                 keyb_current_playListKey = key;
                 
                 // if player is playing we use transition B3 in smMain, else we use transition B1
-                smMain.trigger(smMain_event_playOtherPlaylist); // B3-case
-                smMain.trigger(smMain_event_playWav); // B1-case
+//                smMain.trigger(smMain_event_playOtherPlaylist); // B3-case
+//                smMain.trigger(smMain_event_playWav); // B1-case
                 
                 break;
                 
             case KEYSCAN_FFWD:
 				
 				// skip to next track in playlist
-				smMain.trigger(smMain_event_skip); // E1 transition in smMain
+//				smMain.trigger(smMain_event_skip); // E1 transition in smMain
 				
 				break;
 				
 			case KEYSCAN_REW:    
 				
 				// skip to previous track in playlist
-                smMain.trigger(smMain_event_skipBack); // E2 transition in smMain
+//                smMain.trigger(smMain_event_skipBack); // E2 transition in smMain
                 
 				break;
 		} // switch

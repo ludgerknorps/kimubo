@@ -73,7 +73,7 @@
 //    }
 
     // fsmMain
-    smMain.run_machine();
+//    smMain.run_machine();
 
 
 	} // loop()	 

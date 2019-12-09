@@ -43,16 +43,6 @@
     // initialize serial communication at 9600 bits per second:
     Serial.begin(38400);
     Serial.println(F("Hello to the world of KIMUBO!"));
-
-//    #if defined (debug)
-//        Serial.print(F("SETUP INFO ; 001 FREE RAM "));
-//        Serial.println(freeRam());      
-//        //check_mem();      
-//        Serial.print(F("FSM   INFO ; 005 Stackpointer / Heappointer "));      
-//        Serial.print( (int) SP, HEX);       
-//        Serial.print(F(" / "));       
-//        Serial.println( (int) (SPH << 8 | SPL), HEX);
-//    #endif
     
     // #################################################################################### 
 		// Setup of Keypad/keyboard
@@ -64,29 +54,11 @@
     // A second callback just for debugging purpose: it does nothing fsm-wise but just prints the key-events on Serial
     //keypad.addEventListener(DEBUG_keypad_callback_onEvent);
 
-//    #if defined (debug)
-//        Serial.print(F("SETUP INFO ; 002 FREE RAM "));
-//        Serial.println(freeRam());      
-//        //check_mem();      
-//        Serial.print(F("FSM   INFO ; 005 Stackpointer / Heappointer "));      
-//        Serial.print( (int) SP, HEX);       
-//        Serial.print(F(" / "));       
-//        Serial.println( (int) (SPH << 8 | SPL), HEX);
-//    #endif
+    sdc_setup();
+    keyb_setup();
+    player.setupPlayer(9, 10);
 
-    // #################################################################################### 
-    // Setup of fsmMain
-    smMain_init_stateMachine();
-
-//    #if defined (debug)
-//        Serial.print(F("SETUP INFO ; 003 FREE RAM "));
-//        Serial.println(freeRam());      
-//        //check_mem();      
-//        Serial.print(F("FSM   INFO ; 005 Stackpointer / Heappointer "));      
-//        Serial.print( (int) SP, HEX);       
-//        Serial.print(F(" / "));       
-//        Serial.println( (int) (SPH << 8 | SPL), HEX);
-//    #endif
+    player.play("/1/1.WAV");
 
     myTime = 0;
 
