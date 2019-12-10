@@ -89,7 +89,7 @@
 		// global variables	
 
       // Our Player instance
-        static LKpcm player;
+      static LKpcm player;
       
 
       // player needs to know a) current playlist/dir and b) current track/file and - only for interupts by system-messages - also needs to remember c) postition-of-interupt
@@ -97,9 +97,10 @@
       static char player_current_playlist_dirname;
       static byte player_current_track;
       // in each playlist/dir we have files 0.WAV, 1.WAV, ..., 10.WAV, 11.WAV, ..., 100.WAV, 101.WAV, ... 254.WAV (that is the maximum! 255 is "no-value") Thus length of this string is at most SUFFIX_PCM_FILES + 3
-      // additionally: 1 char each for leading and separating "/" and the dirname 
-      // to be safe and to also include "SYSTEM" dir: 20
-      static char player_current_track_filename[20];
+      // additionally: 1 char each for leading and separating "/" and the dirname and trailing '\0'
+      // = 4+3+1+1+1+3 = 13
+      // to be safe and to also include "SYSTEM" dir: 18
+      static char player_current_track_filename[18];
       
 
       // we also have to memorize:
