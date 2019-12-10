@@ -36,12 +36,15 @@
  * Abschnitt LOOP
  */
 
- byte inByte;
+  //byte inByte; // needed for simulated keypress via Serial.read()
 
 	void loop() {
     
 		// check if something is happening on the keypad (e.g. key pressed released)
 		keypad.getKey(); // we only need to check for one key as we do not use multikey 
+
+    // if playing a playlist and we finished a track, continue with next track, iff there is one
+    // TBD
 
 //    if (Serial.available() > 0) {
 //        // get incoming byte:

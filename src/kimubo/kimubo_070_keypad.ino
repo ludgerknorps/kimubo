@@ -105,18 +105,24 @@
     void DEBUG_keypad_callback_onEvent( char key){
         switch (keypad.getState()){
           case PRESSED:
-            Serial.print(F("PRESSED "));
-            Serial.println(key);
+            #if defined (debug)
+                Serial.print(F("PRESSED "));
+                Serial.println(key);
+            #endif
             break; // we don't react on keypressing, only on holding and especially on releasing a key
             
           case HOLD:
-            Serial.print(F("HOLD "));
-            Serial.println(key);
+            #if defined (debug)
+                Serial.print(F("HOLD "));
+                Serial.println(key);
+            #endif    
             break;
         
           case RELEASED:
-            Serial.print(F("RELEASED "));
-            Serial.println(key);
+            #if defined (debug)
+                Serial.print(F("RELEASED "));
+                Serial.println(key);
+            #endif
             break;
         }
     }
@@ -144,59 +150,92 @@
 					case RELEASED:
 					
 						if (key >= KEYSCAN_1 && key <=KEYSCAN_9) {
-							if (keybHeldKey == NULL) {
-								// key released after pressed but not held
-								// play playlist nr. <key> from beginning
+              // TBD for later release!     
+              //    discrimination between short and long-press-release
+              //    right now both lead to playing playlist
+              // if (keybHeldKey == NULL) {
+							if (true) {       
+  								// key released after pressed but not held
+  								// play playlist nr. <key> from beginning
+  
+                  #if defined (debug)
+                      Serial.print(F("RELEASED "));
+                      Serial.println(key);
+                  #endif
+  
+                  // if 
+                  //    a) we are not playing --> play playlist starting from first track
+                  //    b) we are already playing this playlist --> then ignore key-event
+                  //    c) we are playing other playlist --> play playlist starting from first track
+  
+                  if ( lkpcm_isStopped ){
+                      // case a)
+                      // remember what key/playlist we want to play
+                      keyb_current_playListKey = key;
+                      trans_B1_play_playlist_from_first_track();
+                  } else {
+                      if ( player_current_playlist_dirname == key ) {
+                          //case b)
+                          #if defined (debug)
+                              Serial.print(F("kimubo INFO current playlist was re-selected (inoring!) : "));
+                              Serial.println(player_current_playlist_dirname);   
+                          #endif
+                      } else {
+                          //case c)
+                          // remember what key/playlist we want to play
+                          keyb_current_playListKey = key;
+                          trans_B1_play_playlist_from_first_track();
+                      }
+                  } // else lkpcm_isStopped
+//              } else {
+//  								// key released after held
+//  								// play playlist nr. <key> from stored position (from EEPROM)
+//                  // TBD for later release!
+//                  #if defined (debug)
+//                      Serial.print(F("RELEASED AFTER HOLD "));
+//                      Serial.println(key);
+//                  #endif
+  						}  // long or short pressed?
 
-                Serial.print(F("RELEASED "));
-                Serial.println(key);
-                
-                // remember what key/playlist we want to play
-                keyb_current_playListKey = key;
-                
-                // if player is playing we use transition B3 in smMain, else we use transition B1
-//                smMain.trigger(smMain_event_playOtherPlaylist); // B3-case
-//                smMain.trigger(smMain_event_playWav); // B1-case
-                
-            } else {
-								// key released after held
-								// play playlist nr. <key> from stored position (from EEPROM)
-                // TBD for later release!
-                Serial.print(F("RELEASED AFTER HOLD "));
-                Serial.println(key);
-                
-							} 
+              
 						} else if (key==KEYSCAN_FFWD) {
 							if (keybHeldKey == NULL) {
 								// key released after pressed but not held
 								// skip to next track in playlist
 
-                Serial.print(F("RELEASED "));
-                Serial.println(key);
-               
+                #if defined (debug)
+                    Serial.print(F("RELEASED "));
+                    Serial.println(key);
+                #endif
 //                smMain.trigger(smMain_event_skip); // E1 transition in smMain
 							} else if (key == keybHeldKey) {
 								// key released after held
 								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
 
-                Serial.print(F("RELEASED AFTER HOLD "));
-                Serial.println(key);
+                #if defined (debug)
+                    Serial.print(F("RELEASED AFTER HOLD "));
+                    Serial.println(key);
+                #endif                
 							}
 						} else if (key==KEYSCAN_REW) {
 							if (keybHeldKey == NULL) {
 								// key released after pressed but not held
 								// skip to previous track in playlist
                 
-                Serial.print(F("RELEASED "));
-                Serial.println(key);
+                #if defined (debug)
+                    Serial.print(F("RELEASED "));
+                    Serial.println(key);
+                #endif                    
                 
 //                smMain.trigger(smMain_event_skipBack); // E2 transition in smMain
 							} else if (key == keybHeldKey) {
 								// key released after held
 								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
 
-                Serial.print(F("RELEASED AFTER HOLD "));
-                Serial.println(key);
+                #if defined (debug)
+                    Serial.print(F("RELEASED AFTER HOLD "));
+                    Serial.println(key);
+                #endif                                        
 							}
 						} else if (key==KEYSCAN_SLEEP) {
 							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
