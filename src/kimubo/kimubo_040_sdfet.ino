@@ -27,6 +27,8 @@ bool sdc_setup(){
     char c;
     byte i, j;
     char filenumber[4];
+    SdBaseFile theFile;
+    SdBaseFile theDir;
 
     #if defined (debug)
         Serial.println(F("sdc_setup INFO started..."));
@@ -113,9 +115,12 @@ bool sdc_setup(){
             player_current_track_filename[2] = '\0';
             
             // goto relevant dir
-            if (!sd.chdir(player_current_track_filename)) {
+            if (theDir.isOpen() ) {
+                theDir.close();
+            }
+            if ( ! (theDir.open(player_current_track_filename, O_RDONLY) && theDir.isDir() ) ){
                 #if defined (debug)
-                    Serial.print(F("sdc_setup ERROR sd.chdir failed (3) : ")); 
+                    Serial.print(F("sdc_setup ERROR cannot open dir : ")); 
                     Serial.println(player_current_track_filename);  
                 #endif
                 return false;   // don't do anything more if not
@@ -134,25 +139,26 @@ bool sdc_setup(){
             // max. 254 such files are allowed
             // no other files are allowed
             // we do not know the sequence in which files are scanned
-            for ( j = 0; j<=254; j++ ) {
-
-                // the first two bytes of the player_current_track_filename hold the "/" and DIRname
-                // thus we itoa from byte 4 on
-                player_current_track_filename[2] = '/';
-                player_current_track_filename[3] = '\0';
-                itoa( j, filenumber , DEC);
-                strcat(player_current_track_filename, filenumber);
-                strcat(player_current_track_filename, SUFFIX_PCM_FILES);
-              
-                if (sd.exists(player_current_track_filename) ) {
-                    // only for first file, when player_track_number_min is on initial 255 value
-                    if ( player_track_number_min[i] == 255 ) {
-                        player_track_number_min[i] = j;
-                    }
-                    // if a file exists, remember it. As we walk through dir from 0..254, the last remembered file is max!
+            j = 0;
+            while (theFile.openNext(&theDir, O_RDONLY)) {
+                theFile.getName( player_current_track_filename, sizeof(player_current_track_filename) );
+                theFile.close();
+                j = atoi(player_current_track_filename);
+                #if defined (debug)
+                    Serial.print(F("sdc_setup INFO found file : "));
+                    Serial.println(j); 
+                #endif 
+                // only for first file, when player_track_number_min is on initial 255 value
+                if ( player_track_number_max[i] == 255 ) {
                     player_track_number_max[i] = j;
                 }
-            } // for j // next file in this dir please!
+                if ( j > player_track_number_max[i] ) {
+                    player_track_number_max[i] = j;
+                }
+                if ( j < player_track_number_min[i] ) {
+                    player_track_number_min[i] = j;
+                }
+            }
 
             #if defined (debug)
                 Serial.print(F("sdc_setup INFO player_track_number_min and max for playlist "));
@@ -168,9 +174,9 @@ bool sdc_setup(){
 
     
 
-    #if defined (debug)
+    //#if defined (debug)
         Serial.println(F("sdc_setup INFO finished."));
-    #endif
+    //#endif
 
     return true;
   
