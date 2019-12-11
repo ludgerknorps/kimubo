@@ -207,7 +207,8 @@
                     Serial.print(F("RELEASED "));
                     Serial.println(key);
                 #endif
-                trans_B2_play_next_track_in_playlist();
+                trans_E1_skip_forward();
+                
 							} else if (key == keybHeldKey) {
 								// key released after held
 								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
@@ -227,7 +228,8 @@
                     Serial.println(key);
                 #endif                    
                 
-//                smMain.trigger(smMain_event_skipBack); // E2 transition in smMain
+                trans_E2_skip_backward();
+                
 							} else if (key == keybHeldKey) {
 								// key released after held
 								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else

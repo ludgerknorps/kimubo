@@ -113,13 +113,6 @@
       // b) same also for lowest "track-number", e.g. if /2 has four files "/2/2.WAV", "/2/3.WAV", /2/7.WAV", /2/8.WAV"
       volatile byte player_track_number_min[9]; // one array field per playlist (we dont need that for "systemmessages").
       volatile byte player_track_number_max[9]; // one array field per playlist (we dont need that for "systemmessages").
-
-      // and then we have to have vars for next/previous track and dirname 
-      static byte player_previous_track_number;
-      static byte player_next_track_number;
-      static char player_next_playlist_dirname; // for changing playlist
-      static char player_next_track_filename[18];
-      static char player_previous_track_filename[18];
       
 
     

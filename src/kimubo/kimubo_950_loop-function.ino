@@ -44,7 +44,9 @@
 		keypad.getKey(); // we only need to check for one key as we do not use multikey 
 
     // if playing a playlist and we finished a track, continue with next track, iff there is one
-    
+    if ( lkpcm_isFinishedPlayingFile ) {
+        trans_B2_play_next_track_in_playlist();
+    }
 
 //    if (Serial.available() > 0) {
 //        // get incoming byte:

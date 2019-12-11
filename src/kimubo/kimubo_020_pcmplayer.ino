@@ -25,11 +25,6 @@
 //
 bool player_setup(){
 
-    // default values for our variables
-    
-    player_previous_track_number = 255;
-    player_next_track_number = 255;
-
     player.setupPlayer(AUDIO_PIN_OUT_HIGH, AUDIO_PIN_OUT_LOW);
 
     return true; // nothing to do here yet
@@ -38,108 +33,21 @@ bool player_setup(){
  // ####################################################################################
  // calculates the new track's filename
     void get_new_track_player_filename(const byte curFileNameAsByte, const char curPlaylistName, char* trackFilename){
-          
-    
-//        #if defined (debug)
-//            Serial.print(F("get_new_track_player_filename "));
-//            Serial.print(curFileNameAsByte);
-//            Serial.print(F(" and dir "));
-//            Serial.print(curPlaylistName);
-//        #endif
-       
        char temp_filename[4];
       
        if ( curFileNameAsByte == 255 ){
             strcpy(trackFilename, " "); // default
        } else {
-//            itoa(curFileNameAsByte, temp_filename, 10); // 10 = convert using decimal system
-//          
-//            strcat(temp_filename, SUFFIX_PCM_FILES);
-//    
-//            // a short array to hold the playlist dirname 
-//            char s[4] = "/ /"; // initialize 
-//            s[1] = curPlaylistName; // overwrite
-//            strcpy(trackFilename, s);
-//            strcat(trackFilename, temp_filename);
-//    
-//            #if defined (debug)
-//                Serial.print(F(" : "));
-//                Serial.println(trackFilename);
-//            #endif
-
             strcpy(trackFilename, "/ /");
             trackFilename[1] = curPlaylistName; // overwrite
             itoa(curFileNameAsByte, temp_filename, 10); // 10 = convert using decimal system
             strcat(trackFilename, temp_filename);
             strcat(trackFilename, SUFFIX_PCM_FILES);
 
-//            #if defined (debug)
-//                Serial.print(F(" : "));
-//                Serial.println(trackFilename);
-//            #endif
        }
     } // get_new_track_player_filename()
 
 
-// ####################################################################################
-// while playing each track we spend some time on finding the previous track and the next track -> this will very much speed up continuous playback of whole playlist with all its tracks.
-    void find_next_and_previous_files_in_current_playlist(){
-  
-        byte tempTrackNumber;
-        char tempFileName[sizeof(player_current_track_filename)];
-
-        #if defined (debug)
-            Serial.print(F("kimubo INFO looking for previous/next tracks in dir : ")); 
-            Serial.println(player_current_playlist_dirname);  
-        #endif
-        
-        // player_current_track holds number of currently played track (as integer)
-        // player_current_playlist_dirname holds current dir name
-        
-        // first, find previous track
-        if ( player_current_track == player_track_number_min[player_current_playlist_dirname - '0'] ) {
-            player_previous_track_number = 255; // 255 says "this is first track"
-            #if defined (debug)
-                Serial.print(F("kimubo INFO previous file : ")); 
-                Serial.println(player_previous_track_number);  
-                delay(100);
-            #endif
-        } else {
-            for ( tempTrackNumber = player_current_track-1 ; tempTrackNumber >= player_track_number_min[player_current_playlist_dirname - '0'] ; tempTrackNumber-- ) {
-                get_new_track_player_filename(tempTrackNumber, player_current_playlist_dirname, tempFileName);
-                if ( sd.exists(tempFileName)) {
-                    #if defined (debug)
-                        Serial.print(F("kimubo INFO previous file : ")); 
-                        Serial.println(tempTrackNumber);  
-                    #endif
-                    player_previous_track_number = tempTrackNumber;
-                    break; // do not continue with for loop
-                }
-            } // for
-        }
-        
-        // now find next track
-        if ( player_current_track == player_track_number_max[player_current_playlist_dirname - '0'] ) {
-            player_next_track_number = 255; // 255 says "this is last track"
-            #if defined (debug)
-                Serial.print(F("kimubo INFO next file : ")); 
-                Serial.println(player_next_track_number);  
-            #endif
-        } else {
-            for ( tempTrackNumber = player_current_track+1 ; tempTrackNumber <= player_track_number_max[player_current_playlist_dirname - '0'] ; tempTrackNumber++ ) {
-                get_new_track_player_filename(tempTrackNumber, player_current_playlist_dirname, tempFileName);
-                if ( sd.exists(tempFileName)) {
-                    #if defined (debug)
-                        Serial.print(F("kimubo INFO next file : ")); 
-                        Serial.println(tempFileName);  
-                    #endif
-                    player_next_track_number = tempTrackNumber;
-                    break; // do not continue with for loop
-                }
-            } // for
-        } 
-        
-    } // find_next_and_previous_files_in_current_playlist
 
  
 
@@ -196,6 +104,10 @@ bool player_setup(){
 
         if ( player_current_track == player_track_number_max[player_current_playlist_dirname - '0'] ) {
             // we had already readched last track 
+            #if defined (debug)
+                Serial.print(F("kimubo INFO autostop at end of playlist "));
+                Serial.println(player_current_track_filename);   
+            #endif 
             player.stopPlayback(); 
             return;
            
@@ -209,7 +121,94 @@ bool player_setup(){
             #endif
 
             player.play(player_current_track_filename);
-            
+            return;
+        }
+   } // trans_B2_play_next_track_in_playlist
+
+
+/* =========================================================== */
+    void trans_E1_skip_forward(){
+
+        if ( lkpcm_isStopped ) {
+            return; // do nothing, if player is not playing...
+        }
+        
+        #if defined (debug)
+          Serial.print(F("trans_E1_skip_forward "));
+          Serial.println(keyb_current_playListKey);   
+          Serial.println(player_current_track);
+          Serial.println( player_track_number_max[player_current_playlist_dirname - '0']);
+        #endif
+
+        if ( player_current_track == player_track_number_max[player_current_playlist_dirname - '0'] ) {
+            // we had already readched last track 
+            // as we are skipping on command of user, do nothing, there is no next file 
+            #if defined (debug)
+                Serial.print(F("kimubo INFO cannot skip to next track, last track reached "));
+                Serial.println(player_current_track_filename);   
+            #endif 
+            return;
+           
+        } else {
+            player_current_track++;
+            get_new_track_player_filename(player_current_track, player_current_playlist_dirname, player_current_track_filename);
+
+            #if defined (debug)
+                Serial.print(F("kimubo INFO skipping to next track "));
+                Serial.println(player_current_track_filename);   
+            #endif
+
+            player.play(player_current_track_filename);
+            return;
+        }
+   } // trans_E1_skip_forward
+
+
+/* =========================================================== */
+    void trans_E2_skip_backward(){
+
+        if ( lkpcm_isStopped ) {
+            return; // do nothing, if player is not playing...
+        }
+        
+        #if defined (debug)
+          Serial.print(F("trans_E2_skip_backward "));
+          Serial.println(keyb_current_playListKey);   
+          Serial.println(player_current_track);
+          Serial.println( player_track_number_min[player_current_playlist_dirname - '0']);
+        #endif
+
+        if ( player_current_track == player_track_number_min[player_current_playlist_dirname - '0'] ) {
+            // we had already readched first track 
+            // as we are skipping back on command of user, just start from begin of file again
+            #if defined (debug)
+                Serial.print(F("kimubo INFO cannot skip to previous track, first track reached and is now replayed"));
+                Serial.println(player_current_track_filename);   
+            #endif
+            player.play(player_current_track_filename);
+            return;
+           
+        } else {
+            //  if current file is playing less then x ms then skip to previous file
+            if ( lkpcm_isAtBeginOfFile ) {
+                player_current_track--;
+                get_new_track_player_filename(player_current_track, player_current_playlist_dirname, player_current_track_filename);
+    
+                #if defined (debug)
+                    Serial.print(F("kimubo INFO skipping to previous track "));
+                    Serial.println(player_current_track_filename);   
+                #endif
+                player.play(player_current_track_filename);
+                return;
+            } else {
+                // we just skip back to begin of current file
+                #if defined (debug)
+                    Serial.print(F("kimubo INFO skipping back to begin of current track"));
+                    Serial.println(player_current_track_filename);   
+                #endif
+                player.play(player_current_track_filename);
+                return;
+            }
         }
    }
         
