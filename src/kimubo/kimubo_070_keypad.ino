@@ -207,7 +207,7 @@
                     Serial.print(F("RELEASED "));
                     Serial.println(key);
                 #endif
-//                smMain.trigger(smMain_event_skip); // E1 transition in smMain
+                trans_B2_play_next_track_in_playlist();
 							} else if (key == keybHeldKey) {
 								// key released after held
 								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
@@ -265,6 +265,14 @@
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
     // 10. the keypad setup function
       bool keyb_setup(){
+
+          keypad.setHoldTime(KEYB_HOLD_TIME);
+          keypad.setDebounceTime(KEYB_DEBOUNCE_TIME);
+          // add an event listener 
+          keypad.addEventListener(keypad_callback_onEvent); 
+          // A second callback just for debugging purpose: it does nothing fsm-wise but just prints the key-events on Serial
+          //keypad.addEventListener(DEBUG_keypad_callback_onEvent);
+ 
           return true; // nothing to setup yet        
       }
     

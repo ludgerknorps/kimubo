@@ -44,19 +44,13 @@
     Serial.begin(38400);
     Serial.println(F("Hello to the world of KIMUBO!"));
     
-    // #################################################################################### 
-		// Setup of Keypad/keyboard
-
-		keypad.setHoldTime(KEYB_HOLD_TIME);
-		keypad.setDebounceTime(KEYB_DEBOUNCE_TIME);
-		// add an event listener 
-		keypad.addEventListener(keypad_callback_onEvent); 
-    // A second callback just for debugging purpose: it does nothing fsm-wise but just prints the key-events on Serial
-    //keypad.addEventListener(DEBUG_keypad_callback_onEvent);
+   
 
     sdc_setup();
     keyb_setup();
-    player.setupPlayer(AUDIO_PIN_OUT_HIGH, AUDIO_PIN_OUT_LOW);
+    player_setup();
+    
+    
 
     player.play("/1/1.WAV");
 

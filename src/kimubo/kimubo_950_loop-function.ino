@@ -44,7 +44,7 @@
 		keypad.getKey(); // we only need to check for one key as we do not use multikey 
 
     // if playing a playlist and we finished a track, continue with next track, iff there is one
-    // TBD
+    
 
 //    if (Serial.available() > 0) {
 //        // get incoming byte:

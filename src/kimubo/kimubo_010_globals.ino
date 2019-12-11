@@ -114,9 +114,20 @@
       volatile byte player_track_number_min[9]; // one array field per playlist (we dont need that for "systemmessages").
       volatile byte player_track_number_max[9]; // one array field per playlist (we dont need that for "systemmessages").
 
+      // and then we have to have vars for next/previous track and dirname 
+      static byte player_previous_track_number;
+      static byte player_next_track_number;
+      static char player_next_playlist_dirname; // for changing playlist
+      static char player_next_track_filename[18];
+      static char player_previous_track_filename[18];
+      
+
     
 			// Helper function: make filename from current_track_number
       void get_new_track_player_filename();
+
+      // Helper function: while playing each track we spend some time on finding the previous track and the next track -> this will very much speed up continuous playback of whole playlist with all its tracks.
+      void find_next_and_previous_files_in_current_playlist();
 
 			
 
