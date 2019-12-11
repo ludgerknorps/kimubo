@@ -37,7 +37,8 @@ bool player_setup(){
 
  // ####################################################################################
  // calculates the new track's filename
-    void get_new_track_player_filename(byte curFileNameAsByte, char curPlaylistName, char* trackFilename){
+    void get_new_track_player_filename(const byte curFileNameAsByte, const char curPlaylistName, char* trackFilename){
+          
     
 //        #if defined (debug)
 //            Serial.print(F("get_new_track_player_filename "));
@@ -182,9 +183,6 @@ bool player_setup(){
 /* =========================================================== */
     void trans_B2_play_next_track_in_playlist(){
 
-        SdBaseFile nextFile;
-        byte i = player_current_track;
-
         if ( lkpcm_isStopped ) {
             return; // do nothing, if player is not playing...
         }
@@ -196,47 +194,21 @@ bool player_setup(){
           Serial.println( player_track_number_max[player_current_playlist_dirname - '0']);
         #endif
 
-        if ( i == player_track_number_max[player_current_playlist_dirname - '0'] ) {
+        if ( player_current_track == player_track_number_max[player_current_playlist_dirname - '0'] ) {
             // we had already readched last track 
             player.stopPlayback(); 
             return;
            
         } else {
-            for (;;){
-                i++;
-                get_new_track_player_filename(i, player_current_playlist_dirname, player_current_track_filename);
-                Serial.println(F("TRying..."));   
-                Serial.println(i);
-                Serial.println(player_current_track_filename);   
-                if (nextFile.open(player_current_track_filename, O_RDONLY )){
-                    player_current_track = i;
-                    nextFile.close();
-                    break;
-                }
+            player_current_track++;
+            get_new_track_player_filename(player_current_track, player_current_playlist_dirname, player_current_track_filename);
 
-                if (i == player_track_number_max[player_current_playlist_dirname - '0']) {
-                    player_current_track = i;
-                    break;
-                }
-            } 
-            
-            nextFile.close();
-            
-            if (player_current_track > player_track_number_max[player_current_playlist_dirname - '0']) {
-                #if defined (debug)
-                    Serial.print(F("kimubo ERROR no player_track_number_max?? "));
-                    Serial.println(player_track_number_max[player_current_playlist_dirname - '0']);   
-                #endif
-            } else {
-                // we found a next file
-                #if defined (debug)
-                    Serial.print(F("kimubo INFO playing net track "));
-                    Serial.println(player_current_track_filename);   
-                #endif
-    
-                player.play(player_current_track_filename);
-            }
-            
+            #if defined (debug)
+                Serial.print(F("kimubo INFO playing next track "));
+                Serial.println(player_current_track_filename);   
+            #endif
+
+            player.play(player_current_track_filename);
             
         }
    }

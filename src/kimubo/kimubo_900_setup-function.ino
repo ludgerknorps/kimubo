@@ -50,9 +50,7 @@
     keyb_setup();
     player_setup();
     
-    
 
-    player.play("/1/1.WAV");
 
 
 	} // setup()
