@@ -25,7 +25,7 @@
 //
 bool player_setup(){
 
-    player.setupPlayer(AUDIO_PIN_OUT_HIGH, AUDIO_PIN_OUT_LOW);
+    player.setupPlayer(AUDIO_PIN_OUT_HIGH, AUDIO_PIN_OUT_LOW, AMP_PIN_MUTE);
 
     return true; // nothing to do here yet
 }
