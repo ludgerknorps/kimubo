@@ -131,6 +131,8 @@
 			#define AUDIO_PIN_OUT_HIGH		9 
 			#define AUDIO_PIN_OUT_LOW		10
 
+      #define AUDIO_PIN_LOUDNESS  5
+
 
 	// ####################################################################################
 	// ####################################################################################
@@ -240,9 +242,9 @@
 			static const char KEYSCAN_REW    =  'R' ;  // Rewind / Skipback
 			static const char KEYSCAN_STAT   =  'Z' ;  // Status (output via speech)
 			static const char KEYSCAN_SLEEP  =  'S' ;  // Sleep-Timer-Set
-			static const char KEYSCAN_LOUD   =  'L' ;  // Parental switch for Volume-Preset: Loud or whisper
 			static const char KEYSCAN_A    	 =  'A' ;  // reserved for future use
 			static const char KEYSCAN_B      =  'B' ;  // reserved for future use
+      static const char KEYSCAN_C      =  'C' ;  // reserved for future use
 				  
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -304,7 +306,7 @@
 			static const char KEYB_keyScans[KEYB_ROWS][KEYB_COLS] = {
 			  { KEYSCAN_1,    KEYSCAN_2,    KEYSCAN_3,      KEYSCAN_STAT  },
 			  { KEYSCAN_4,    KEYSCAN_5,    KEYSCAN_6,      KEYSCAN_SLEEP },
-			  { KEYSCAN_7,    KEYSCAN_8,    KEYSCAN_9,      KEYSCAN_LOUD  },
+			  { KEYSCAN_7,    KEYSCAN_8,    KEYSCAN_9,      KEYSCAN_C  },
 			  { KEYSCAN_REW,  KEYSCAN_FFWD, KEYSCAN_A,    	KEYSCAN_B   }
 			};
 		  

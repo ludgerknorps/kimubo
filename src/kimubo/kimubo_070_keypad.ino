@@ -230,6 +230,7 @@
                 
                 trans_E2_skip_backward();
                 
+                
 							} else if (key == keybHeldKey) {
 								// key released after held
 								// we were seeking (keystate was HOLD) --> now in RELEASE we don't skip/do anything else
@@ -242,10 +243,6 @@
 						} else if (key==KEYSCAN_SLEEP) {
 							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
 							// setSleeper()
-              // TBD later release
-						} else if (key==KEYSCAN_LOUD) {
-							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
-							// setLoudness()
               // TBD later release
 						} else if (key==KEYSCAN_STAT) {
 							// key released after pressed, doesn't matter if held or not (because key is not used doubly)

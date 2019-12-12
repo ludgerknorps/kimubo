@@ -43,6 +43,11 @@
 		// check if something is happening on the keypad (e.g. key pressed released)
 		keypad.getKey(); // we only need to check for one key as we do not use multikey 
 
+    // check loudness switch
+    if ( player_is_loudness != digitalRead(AUDIO_PIN_LOUDNESS ) ) {
+        toggleLoudness();
+    }
+
     // if playing a playlist and we finished a track, continue with next track, iff there is one
     if ( lkpcm_isFinishedPlayingFile ) {
         trans_B2_play_next_track_in_playlist();

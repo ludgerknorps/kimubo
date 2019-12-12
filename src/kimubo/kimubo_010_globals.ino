@@ -114,7 +114,9 @@
       volatile byte player_track_number_min[9]; // one array field per playlist (we dont need that for "systemmessages").
       volatile byte player_track_number_max[9]; // one array field per playlist (we dont need that for "systemmessages").
       
-
+      // loudness is set via softwarevolume controll of lkpcm lib
+      volatile bool player_is_loudness;
+    
     
 			// Helper function: make filename from current_track_number
       void get_new_track_player_filename();

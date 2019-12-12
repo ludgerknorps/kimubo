@@ -27,6 +27,13 @@ bool player_setup(){
 
     player.setupPlayer(AUDIO_PIN_OUT_HIGH, AUDIO_PIN_OUT_LOW, AMP_PIN_MUTE);
 
+    pinMode(AUDIO_PIN_LOUDNESS,INPUT);
+    player_is_loudness = true; // default as lkpcm player also starts with volume = 0 (which is loudness), the non-loudness volume would be -3
+    #if defined (debug)
+        Serial.print(F("kimubo INFO software volume is "));
+        Serial.println(byte(volMod));   
+    #endif
+
     return true; // nothing to do here yet
 }
 
@@ -211,6 +218,32 @@ bool player_setup(){
             }
         }
    }
+
+
+/* =========================================================== */
+    void toggleLoudness(){
+
+        // loundness toggles between normal volume and reduced volume.
+        // volume is thereby set via player.volume() function
+        if ( volMod == 0 ) {
+            // it was loudness and now shall not be
+            player_is_loudness = false;
+            player.setVolume(2); // => volmod = 2-4 = -2
+            #if defined (debug)
+                Serial.print(F("kimubo INFO loudness off "));
+                Serial.println(byte(volMod));   
+            #endif
+        } else {
+            // it was not loudness and now shall be
+            player_is_loudness = true;
+            player.setVolume(4); // => volmod = 4-4 = 0
+            #if defined (debug)
+                Serial.print(F("kimubo INFO loudness on "));
+                Serial.println(byte(volMod));   
+            #endif
+        }
+        
+    }
         
 
 
