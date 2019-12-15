@@ -100,6 +100,8 @@ bool player_setup(){
 
         if ( lkpcm_isStopped ) {
             return; // do nothing, if player is not playing...
+        } else{
+            player.stopPlayback();
         }
         
         #if defined (debug)
