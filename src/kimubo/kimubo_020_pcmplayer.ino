@@ -25,9 +25,9 @@
 //
 bool player_setup(){
 
-    player.setupPlayer(AUDIO_PIN_OUT_HIGH, AUDIO_PIN_OUT_LOW, AMP_PIN_MUTE);
+    player.setupPlayer(AUDIO_PIN_OUT_HIGH, AUDIO_PIN_OUT_LOW);
 
-    pinMode(AUDIO_PIN_LOUDNESS,INPUT);
+    pinMode(AUDIO_PIN_LOUDNESS,INPUT_PULLUP);
     player_is_loudness = true; // default as lkpcm player also starts with volume = 0 (which is loudness), the non-loudness volume would be -3
     #if defined (debug)
         Serial.print(F("kimubo INFO software volume is "));

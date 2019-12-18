@@ -240,14 +240,6 @@
                     Serial.println(key);
                 #endif                                        
 							}
-						} else if (key==KEYSCAN_SLEEP) {
-							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
-							// setSleeper()
-              // TBD later release
-						} else if (key==KEYSCAN_STAT) {
-							// key released after pressed, doesn't matter if held or not (because key is not used doubly)
-							// tellStatus()
-              // TBD later release
 						}
 						
 						// clean up the flags 

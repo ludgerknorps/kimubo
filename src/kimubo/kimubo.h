@@ -64,7 +64,7 @@
 	 */
 
 		// defining debug --> serial output delivers information on internals, timing and cpu load may be a little of compared to non-debug-mode
-    #define debug
+   // #define debug
 
 
   // ####################################################################################
@@ -131,7 +131,7 @@
 			#define AUDIO_PIN_OUT_HIGH		9 
 			#define AUDIO_PIN_OUT_LOW		10
 
-      #define AUDIO_PIN_LOUDNESS  5
+      #define AUDIO_PIN_LOUDNESS  2
 
 
 	// ####################################################################################
@@ -240,11 +240,7 @@
 			static const char KEYSCAN_9      =  '8' ;  
 			static const char KEYSCAN_FFWD   =  'F' ;  // FastForwar / Skip
 			static const char KEYSCAN_REW    =  'R' ;  // Rewind / Skipback
-			static const char KEYSCAN_STAT   =  'Z' ;  // Status (output via speech)
-			static const char KEYSCAN_SLEEP  =  'S' ;  // Sleep-Timer-Set
 			static const char KEYSCAN_A    	 =  'A' ;  // reserved for future use
-			static const char KEYSCAN_B      =  'B' ;  // reserved for future use
-      static const char KEYSCAN_C      =  'C' ;  // reserved for future use
 				  
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -253,22 +249,21 @@
 
 			// real hardware no. of rows/colums
 			static const byte KEYB_ROWS = 4;
-			static const byte KEYB_COLS = 4;
+			static const byte KEYB_COLS = 3;
 			
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // 3. Which pin has which matrix-keyboard-row/-column?
-			
-			// pins are Arduino pin nr. 
-			static const byte KEYB_PIN_COLUMN1  = 8;
-			static const byte KEYB_PIN_COLUMN2  = 7;
-			static const byte KEYB_PIN_COLUMN3  = 6;
-			static const byte KEYB_PIN_COLUMN4  = 5;
-			static const byte KEYB_PIN_ROW1   = A0;  // used as digital pin
-			static const byte KEYB_PIN_ROW2   = A1;    // used as digital pin
-			static const byte KEYB_PIN_ROW3   = A2;    // used as digital pin
-			static const byte KEYB_PIN_ROW4   = A3;    // used as digital pin
+
+      // pins are Arduino pin nr. 
+      static const byte KEYB_PIN_COLUMN1  = 7;
+      static const byte KEYB_PIN_COLUMN2  = 8;
+      static const byte KEYB_PIN_COLUMN3  = A1;
+      static const byte KEYB_PIN_ROW1   = 6;  // used as digital pin
+      static const byte KEYB_PIN_ROW2   = 5;    // used as digital pin
+      static const byte KEYB_PIN_ROW3   = A2;    // used as digital pin
+      static const byte KEYB_PIN_ROW4   = A3;    // used as digital pin
 			
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -287,8 +282,7 @@
 			static const byte KEYB_ColPins[KEYB_COLS] = {
 			  KEYB_PIN_COLUMN1,
 			  KEYB_PIN_COLUMN2,
-			  KEYB_PIN_COLUMN3,
-			  KEYB_PIN_COLUMN4
+			  KEYB_PIN_COLUMN3
 			}; //connect to the column pinouts of the keypad
 
 			
@@ -296,7 +290,7 @@
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // 5. damit µC zwischendurch in Powerdown gehen kann, müssen alle Keyboard-Inputs (=Reihen, s.o.) mit je einer Diode an diesen Interrupt-Pin angeschlossen sein; dieser weckt dann den µC auf)
-			static const byte KEYB_PIN_INTERRUPT = 2;
+			// tbd later! static const byte KEYB_PIN_INTERRUPT = 2;
 			
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -304,10 +298,10 @@
 		  // 6. Die TastaturBelegung selbst = welche Taste ist wo?
 			  
 			static const char KEYB_keyScans[KEYB_ROWS][KEYB_COLS] = {
-			  { KEYSCAN_1,    KEYSCAN_2,    KEYSCAN_3,      KEYSCAN_STAT  },
-			  { KEYSCAN_4,    KEYSCAN_5,    KEYSCAN_6,      KEYSCAN_SLEEP },
-			  { KEYSCAN_7,    KEYSCAN_8,    KEYSCAN_9,      KEYSCAN_C  },
-			  { KEYSCAN_REW,  KEYSCAN_FFWD, KEYSCAN_A,    	KEYSCAN_B   }
+			  { KEYSCAN_1,    KEYSCAN_2,    KEYSCAN_3 },
+			  { KEYSCAN_4,    KEYSCAN_5,    KEYSCAN_6 },
+			  { KEYSCAN_7,    KEYSCAN_8,    KEYSCAN_9 },
+			  { KEYSCAN_REW,  KEYSCAN_FFWD, KEYSCAN_A }
 			};
 		  
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -349,9 +343,9 @@
 			//~ #define AMP_PIN_POWERGND 					0 // directly connected to GND and BATTERY_PIN_GND
 			//~ #define AMP_PIN_SWITCHED_PLUS 				0 // directly connected to RAW // this is our power supply!
 			// used as analog input pin:
-			#define AMP_PIN_VOL_FEEDBACK					A6
+			// tbd later! #define AMP_PIN_VOL_FEEDBACK					A6
 			// used as digital output pins:
-			#define AMP_PIN_MUTE	 						    3
+			// tbd later! #define AMP_PIN_MUTE	 						    3
 			// #define AMP_PIN_SUSPEND							  255 
 			
 			
@@ -368,7 +362,7 @@
 	 * Abschnitt SDCard
 	 */
 
-    #define SD_ChipSelectPin 4 
+    #define SD_ChipSelectPin A0 
 
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -378,7 +372,7 @@
 			#define SDC_PIN_MOSI	 			11 
 			#define SDC_PIN_MISO				12  
 			#define SDC_PIN_SCK					13 
-			#define SDC_PIN_CS					4 
+			#define SDC_PIN_CS					A0 
 			//~ #define SDC_PIN_VCC		 		0 // directly connected to RAW
 			//~ #define SDC_PIN_GND	 			0 // directly connected to GND
 			
