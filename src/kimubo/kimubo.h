@@ -80,34 +80,36 @@
    * Abschnitt smMain
    */
 
-    // for seeking, i.e. fast forward or backward in a track
-    //        In order to do that we play a short part of the track,
-    //        then hop to a position a little further, play again, hop again, etc.
-    //        There are two relevant user-defined constants:
-    //          a) SEEK_SPEEDUP       how fast shall seeking be (in times of normal play speed)
-    //          b) SEEK_DURATION_PLAYING  how much of a track shall be played between hops (in milliseconds)
-    #define SEEK_SPEEDUP      10
-    #define SEEK_DURATION_PLAYING 10
-    //        From those user-defined constants we can derive some internally relevant auto-constants:
-    //          c) SEEK_INTERVAL_LENGTH   how long is a one seek interval in total (playing + hopping)
-    //          d) SEEK_INTERVAL_HOP_FWD  how far do we hop forward before playing again
-    //          e) SEEK_INTERVAL_HOP_BWD  how far do we hop backward before playing again
-    #define SEEK_INTERVAL_LENGTH  (1000/SEEK_SPEEDUP)
-    #define SEEK_INTERVAL_HOP_FWD (SEEK_INTERVAL_LENGTH-SEEK_DURATION_PLAYING)
-    #define SEEK_INTERVAL_HOP_BWD (SEEK_INTERVAL_LENGTH+SEEK_DURATION_PLAYING)
+	// tbd later! 
+    //~ // for seeking, i.e. fast forward or backward in a track
+    //~ //        In order to do that we play a short part of the track,
+    //~ //        then hop to a position a little further, play again, hop again, etc.
+    //~ //        There are two relevant user-defined constants:
+    //~ //          a) SEEK_SPEEDUP       how fast shall seeking be (in times of normal play speed)
+    //~ //          b) SEEK_DURATION_PLAYING  how much of a track shall be played between hops (in milliseconds)
+    //~ #define SEEK_SPEEDUP      10
+    //~ #define SEEK_DURATION_PLAYING 10
+    //~ //        From those user-defined constants we can derive some internally relevant auto-constants:
+    //~ //          c) SEEK_INTERVAL_LENGTH   how long is a one seek interval in total (playing + hopping)
+    //~ //          d) SEEK_INTERVAL_HOP_FWD  how far do we hop forward before playing again
+    //~ //          e) SEEK_INTERVAL_HOP_BWD  how far do we hop backward before playing again
+    //~ #define SEEK_INTERVAL_LENGTH  (1000/SEEK_SPEEDUP)
+    //~ #define SEEK_INTERVAL_HOP_FWD (SEEK_INTERVAL_LENGTH-SEEK_DURATION_PLAYING)
+    //~ #define SEEK_INTERVAL_HOP_BWD (SEEK_INTERVAL_LENGTH+SEEK_DURATION_PLAYING)
     
-    // for powersaving there is one relevant user-defined constant:
-    //          a) POWERSAVE_AFTER      after which time (in milliseconds) shall device enter low-power-state
-    //                        coming from idle, the low-power-state is recoverable, 
-    //                        i.e. we can return to idle on e.g. keypress
-    #define POWERSAVE_AFTER     3000000
-    //        From this user-defined constant we can derive some internally relevant auto-constants:
-    //          b) POWERSAVE_AFTER_PAUSE  after which time in pause-state shall device enter low-power-state
-    //                        (in times of POWERSAVE_AFTER, not milliseconds!)
-    //                        coming from pause, the low-power-state is recoverable, 
-    //                        i.e. we can return to pause on e.g. keypress BUT NOT by just turning
-    //                        the volume up again, thus do not choose a too small value here!
-    #define POWERSAVE_AFTER_PAUSE (60*POWERSAVE_AFTER)
+	// tbd later! 
+    //~ // for powersaving there is one relevant user-defined constant:
+    //~ //          a) POWERSAVE_AFTER      after which time (in milliseconds) shall device enter low-power-state
+    //~ //                        coming from idle, the low-power-state is recoverable, 
+    //~ //                        i.e. we can return to idle on e.g. keypress
+    //~ #define POWERSAVE_AFTER     3000000
+    //~ //        From this user-defined constant we can derive some internally relevant auto-constants:
+    //~ //          b) POWERSAVE_AFTER_PAUSE  after which time in pause-state shall device enter low-power-state
+    //~ //                        (in times of POWERSAVE_AFTER, not milliseconds!)
+    //~ //                        coming from pause, the low-power-state is recoverable, 
+    //~ //                        i.e. we can return to pause on e.g. keypress BUT NOT by just turning
+    //~ //                        the volume up again, thus do not choose a too small value here!
+    //~ #define POWERSAVE_AFTER_PAUSE (60*POWERSAVE_AFTER)
 		
 
 	// ####################################################################################
@@ -131,7 +133,7 @@
 			#define AUDIO_PIN_OUT_HIGH		9 
 			#define AUDIO_PIN_OUT_LOW		10
 
-      #define AUDIO_PIN_LOUDNESS  2
+			#define AUDIO_PIN_LOUDNESS  2
 
 
 	// ####################################################################################
@@ -187,29 +189,32 @@
 																  // iff (!) we limit base address + max needed space (= upper limit of used space)
 																  // to bee 255 or less.
 		
-		static const byte EEPROM_VCCCOMPENSATION_ADDR	=	EEPROM_BASE_ADDR + 0; // four bytes used
+		// tbd later! 
+		//~ static const byte EEPROM_VCCCOMPENSATION_ADDR	=	EEPROM_BASE_ADDR + 0; // four bytes used
 		
-		static const byte EEPROM_LAST_PLAYLIST_ADDR		=	EEPROM_VCCCOMPENSATION_ADDR + 4	; // one byte used
+		static const byte EEPROM_LAST_PLAYLIST_ADDR		=	EEPROM_BASE_ADDR + 4	; // one byte used
 		
-		static const byte EEPROM_LAST_TRACK_IN_PLAYLIST[9] = {	EEPROM_LAST_PLAYLIST_ADDR + 1,
-																EEPROM_LAST_PLAYLIST_ADDR + 3,
-																EEPROM_LAST_PLAYLIST_ADDR + 5,
-																EEPROM_LAST_PLAYLIST_ADDR + 7,
-																EEPROM_LAST_PLAYLIST_ADDR + 9,
-																EEPROM_LAST_PLAYLIST_ADDR + 11,
-																EEPROM_LAST_PLAYLIST_ADDR + 13,
-																EEPROM_LAST_PLAYLIST_ADDR + 15,
-																EEPROM_LAST_PLAYLIST_ADDR + 17}; // two bytes used, each
+		// tbd later! 
+		//~ static const byte EEPROM_LAST_TRACK_IN_PLAYLIST[9] = {	EEPROM_LAST_PLAYLIST_ADDR + 1,
+																//~ EEPROM_LAST_PLAYLIST_ADDR + 3,
+																//~ EEPROM_LAST_PLAYLIST_ADDR + 5,
+																//~ EEPROM_LAST_PLAYLIST_ADDR + 7,
+																//~ EEPROM_LAST_PLAYLIST_ADDR + 9,
+																//~ EEPROM_LAST_PLAYLIST_ADDR + 11,
+																//~ EEPROM_LAST_PLAYLIST_ADDR + 13,
+																//~ EEPROM_LAST_PLAYLIST_ADDR + 15,
+																//~ EEPROM_LAST_PLAYLIST_ADDR + 17}; // two bytes used, each
 																
-		static const byte EEPROM_LAST_POSITION_IN_TRACK_IN_PLAYLIST[9] = {	EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 2,
-																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 6,
-																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 10,
-																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 14,
-																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 18,
-																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 22,
-																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 26,
-																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 30,
-																			EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 34}; // four bytes used, each
+		// tbd later! 
+		//~ static const byte EEPROM_LAST_POSITION_IN_TRACK_IN_PLAYLIST[9] = {	EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 2,
+																			//~ EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 6,
+																			//~ EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 10,
+																			//~ EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 14,
+																			//~ EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 18,
+																			//~ EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 22,
+																			//~ EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 26,
+																			//~ EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 30,
+																			//~ EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 34}; // four bytes used, each
 
 
 	// ####################################################################################
@@ -256,14 +261,14 @@
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // 3. Which pin has which matrix-keyboard-row/-column?
 
-      // pins are Arduino pin nr. 
-      static const byte KEYB_PIN_COLUMN1  = 7;
-      static const byte KEYB_PIN_COLUMN2  = 8;
-      static const byte KEYB_PIN_COLUMN3  = A1;
-      static const byte KEYB_PIN_ROW1   = 6;  // used as digital pin
-      static const byte KEYB_PIN_ROW2   = 5;    // used as digital pin
-      static const byte KEYB_PIN_ROW3   = A2;    // used as digital pin
-      static const byte KEYB_PIN_ROW4   = A3;    // used as digital pin
+			// pins are Arduino pin nr. 
+			static const byte KEYB_PIN_COLUMN1  = 7;
+			static const byte KEYB_PIN_COLUMN2  = 8;
+			static const byte KEYB_PIN_COLUMN3  = A1;
+			static const byte KEYB_PIN_ROW1   = 6;  // used as digital pin
+			static const byte KEYB_PIN_ROW2   = 5;    // used as digital pin
+			static const byte KEYB_PIN_ROW3   = A2;    // used as digital pin
+			static const byte KEYB_PIN_ROW4   = A3;    // used as digital pin
 			
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -346,7 +351,7 @@
 			// tbd later! #define AMP_PIN_VOL_FEEDBACK					A6
 			// used as digital output pins:
 			// tbd later! #define AMP_PIN_MUTE	 						    3
-			// #define AMP_PIN_SUSPEND							  255 
+			// tbd later! #define AMP_PIN_SUSPEND							  255 
 			
 			
 	// ####################################################################################
@@ -362,7 +367,7 @@
 	 * Abschnitt SDCard
 	 */
 
-    #define SD_ChipSelectPin A0 
+			
 
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -373,13 +378,14 @@
 			#define SDC_PIN_MISO				12  
 			#define SDC_PIN_SCK					13 
 			#define SDC_PIN_CS					A0 
+			#define SD_ChipSelectPin A0 
 			//~ #define SDC_PIN_VCC		 		0 // directly connected to RAW
 			//~ #define SDC_PIN_GND	 			0 // directly connected to GND
 			
 		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // Globals
+		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		// Globals
 		
 			// define what suffix all PCM/WAV files need to have on the SD-card.
 			// relevant for "normal" PCM files as well as message-files.
@@ -388,8 +394,8 @@
 			// where on SDcard are all our files stored?
 			// we use hard-fixed "/", no user-definable variable!
 
-      // define how the subdir is named, that holds system-message-pcm-files
-      // relevant for "normal" PCM files as well as message-files.
-      const char SDC_SYSTEM_MESSAGES_DIR[7] = "SYSTEM";
+			// define how the subdir is named, that holds system-message-pcm-files
+			// relevant for "normal" PCM files as well as message-files.
+			const char SDC_SYSTEM_MESSAGES_DIR[7] = "SYSTEM";
 
 #endif // KIMUBO_H definition
