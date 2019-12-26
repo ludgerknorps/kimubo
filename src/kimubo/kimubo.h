@@ -157,17 +157,17 @@
 		 *
 		 *  	+ 4 Bytes = one Byte type byte with ragng (1 ..9) for the last playlist that was played
 		 *
-		 * 		+ 1 Bytes = two Bytes type unsigned int for the last track that was played in playlist 1
-		 *		+ 2 Bytes = two Bytes type unsigned int for the last track that was played in playlist 2
-		 * 		+ 2 Bytes = two Bytes type unsigned int for the last track that was played in playlist 3
-		 * 		+ 2 Bytes = two Bytes type unsigned int for the last track that was played in playlist 4
-		 *		+ 2 Bytes = two Bytes type unsigned int for the last track that was played in playlist 5
-		 * 		+ 2 Bytes = two Bytes type unsigned int for the last track that was played in playlist 6
-		 * 		+ 2 Bytes = two Bytes type unsigned int for the last track that was played in playlist 7
-		 *		+ 2 Bytes = two Bytes type unsigned int for the last track that was played in playlist 8
-		 * 		+ 2 Bytes = two Bytes type unsigned int for the last track that was played in playlist 9
+		 * 		+ 1 Bytes = one Byte type byte for the last track that was played in playlist 1
+		 *		+ 1 Bytes = one Byte type byte for the last track that was played in playlist 2
+		 * 		+ 1 Bytes = one Byte type byte for the last track that was played in playlist 3
+		 * 		+ 1 Bytes = one Byte type byte for the last track that was played in playlist 4
+		 *		+ 1 Bytes = one Byte type byte for the last track that was played in playlist 5
+		 * 		+ 1 Bytes = one Byte type byte for the last track that was played in playlist 6
+		 * 		+ 1 Bytes = one Byte type byte for the last track that was played in playlist 7
+		 *		+ 1 Bytes = one Byte type byte for the last track that was played in playlist 8
+		 * 		+ 1 Bytes = one Byte type byte for the last track that was played in playlist 9
 		 * 
-		 * 		+ 2 Bytes = four Bytes type unsigned long for the last position in last track that was played in playlist 1
+		 * 		+ 1 Bytes = four Bytes type unsigned long for the last position in last track that was played in playlist 1
 		 *		+ 4 Bytes = four Bytes type unsigned long for the last position in last track that was played in playlist 2
 		 * 		+ 4 Bytes = four Bytes type unsigned long for the last position in last track that was played in playlist 3
 		 * 		+ 4 Bytes = four Bytes type unsigned long for the last position in last track that was played in playlist 4
@@ -177,11 +177,11 @@
 		 *		+ 4 Bytes = four Bytes type unsigned long for the last position in last track that was played in playlist 8
 		 * 		+ 4 Bytes = four Bytes type unsigned long for the last position in last track that was played in playlist 9
 		 * 
-		 * 		in sum : 59 byte
+		 * 		in sum : 50 byte
 		 */
 		static const byte EEPROM_BASE_ADDR      		= 	0	; // this one should not be used directly in code, instead use specific addresses form below
-																  // can be set to any value between 0 and "real_eeprom_size" - all bytes used (currently 59)
-																  // therefore for ATMEGA328P with 1024byte EEPROM: between 0 .. 964
+																  // can be set to any value between 0 and "real_eeprom_size" - all bytes used (currently 50)
+																  // therefore for ATMEGA328P with 1024byte EEPROM: between 0 .. 973
 																  // BEWARE:
 																  // we have 1024 bytes of EEPROM on the ATmega328P --> addresses in EEPROM need to be of type "short", 
 																  // if we need to address whole EEPROM space.
@@ -195,18 +195,18 @@
 		static const byte EEPROM_LAST_PLAYLIST_ADDR		=	EEPROM_BASE_ADDR + 4	; // one byte used
 		
 		// tbd later! 
-		//~ static const byte EEPROM_LAST_TRACK_IN_PLAYLIST[9] = {	EEPROM_LAST_PLAYLIST_ADDR + 1,
-																//~ EEPROM_LAST_PLAYLIST_ADDR + 3,
-																//~ EEPROM_LAST_PLAYLIST_ADDR + 5,
-																//~ EEPROM_LAST_PLAYLIST_ADDR + 7,
-																//~ EEPROM_LAST_PLAYLIST_ADDR + 9,
-																//~ EEPROM_LAST_PLAYLIST_ADDR + 11,
-																//~ EEPROM_LAST_PLAYLIST_ADDR + 13,
-																//~ EEPROM_LAST_PLAYLIST_ADDR + 15,
-																//~ EEPROM_LAST_PLAYLIST_ADDR + 17}; // two bytes used, each
+		static const byte EEPROM_LAST_TRACK_IN_PLAYLIST[9] = {	EEPROM_LAST_PLAYLIST_ADDR + 1,
+																EEPROM_LAST_PLAYLIST_ADDR + 2,
+																EEPROM_LAST_PLAYLIST_ADDR + 3,
+																EEPROM_LAST_PLAYLIST_ADDR + 4,
+																EEPROM_LAST_PLAYLIST_ADDR + 5,
+																EEPROM_LAST_PLAYLIST_ADDR + 6,
+																EEPROM_LAST_PLAYLIST_ADDR + 7,
+																EEPROM_LAST_PLAYLIST_ADDR + 8,
+																EEPROM_LAST_PLAYLIST_ADDR + 9}; // two bytes used, each
 																
 		// tbd later! 
-		//~ static const byte EEPROM_LAST_POSITION_IN_TRACK_IN_PLAYLIST[9] = {	EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 2,
+		//~ static const byte EEPROM_LAST_POSITION_IN_TRACK_IN_PLAYLIST[9] = {	EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 1,
 																			//~ EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 6,
 																			//~ EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 10,
 																			//~ EEPROM_LAST_TRACK_IN_PLAYLIST[8] + 14,
