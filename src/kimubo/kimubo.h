@@ -110,6 +110,11 @@
     //~ //                        i.e. we can return to pause on e.g. keypress BUT NOT by just turning
     //~ //                        the volume up again, thus do not choose a too small value here!
     //~ #define POWERSAVE_AFTER_PAUSE (60*POWERSAVE_AFTER)
+
+
+  // on startup autoplay the last playlists and track as memorized in EEPROM 
+
+    #define AUTO_PLAY
 		
 
 	// ####################################################################################
@@ -188,6 +193,9 @@
 																  // As we only need a subset of the address-space we can use byte type instead for addresses, 
 																  // iff (!) we limit base address + max needed space (= upper limit of used space)
 																  // to bee 255 or less.
+
+                                  // At first we do not use any wear leveling as the estimated 100000 cycles of EEPROM life amount to
+                                  // approx. 100000/10/365 ~= 27 years of use with ten uses per day each day of the year...
 		
 		// tbd later! 
 		//~ static const byte EEPROM_VCCCOMPENSATION_ADDR	=	EEPROM_BASE_ADDR + 0; // four bytes used

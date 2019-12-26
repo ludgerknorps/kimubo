@@ -80,9 +80,8 @@ bool player_setup(){
             get_new_track_player_filename(player_current_track, player_current_playlist_dirname, player_current_track_filename);
             player.play(player_current_track_filename);
 
-            // as we just started playback, now is a very good time to spend some CPU-cycles on finding the next track.
-            // this will very much speed up continuous playback of whole playlist with all its tracks.
-            //find_next_and_previous_files_in_current_playlist(); 
+            // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
+            remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
             
         } else {
             // no file in dir --> do nothing, and just for good measurement: stop player (it should be stopped already!)
@@ -130,6 +129,10 @@ bool player_setup(){
             #endif
 
             player.play(player_current_track_filename);
+            
+            // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
+            remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
+            
             return;
         }
    } // trans_B2_play_next_track_in_playlist
@@ -168,6 +171,10 @@ bool player_setup(){
             #endif
 
             player.play(player_current_track_filename);
+
+            // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
+            remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
+            
             return;
         }
    } // trans_E1_skip_forward
@@ -195,6 +202,11 @@ bool player_setup(){
                 Serial.println(player_current_track_filename);   
             #endif
             player.play(player_current_track_filename);
+
+            // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
+            remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
+            // actually in this cse this hould not write anything to the EEPROM, as the same track is played again thus the same values would need to be written an as we use EEPROM.update() this does not really trigger a rewrite.
+            
             return;
            
         } else {
@@ -208,6 +220,10 @@ bool player_setup(){
                     Serial.println(player_current_track_filename);   
                 #endif
                 player.play(player_current_track_filename);
+
+                // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
+                remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
+            
                 return;
             } else {
                 // we just skip back to begin of current file
@@ -216,6 +232,11 @@ bool player_setup(){
                     Serial.println(player_current_track_filename);   
                 #endif
                 player.play(player_current_track_filename);
+
+                // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
+                remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
+                // actually in this cse this hould not write anything to the EEPROM, as the same track is played again thus the same values would need to be written an as we use EEPROM.update() this does not really trigger a rewrite.
+                
                 return;
             }
         }
@@ -245,7 +266,67 @@ bool player_setup(){
             #endif
         }
         
-    }
+    } // toggleLoudness()
+
+
+/* =========================================================== */
+    void remember_current_playlist_and_track_in_eeprom(const byte trackNr, const byte playlistNr){
+        EEPROM.update(EEPROM_LAST_PLAYLIST_ADDR, playlistNr);
+        EEPROM.update(EEPROM_LAST_TRACK_IN_PLAYLIST[playlistNr - '0'], trackNr);
+    } // remember_current_playlist_and_track_in_eeprom()
+
+/* =========================================================== */
+    void play_last_playlist_and_track_from_eeprom(){
+      // this function is only called at device startup.
+      // thus player_current_playlist_dirname and player_current_track are to be set to 255 (defaults) if not to something else...
+      //
+      // EEPROM reads to byte==255 if EEPROM cell was never writtenbefore, so this fits.
+      
+        player_current_playlist_dirname = EEPROM.read(EEPROM_LAST_PLAYLIST_ADDR);
+        if ( player_current_playlist_dirname >= KEYSCAN_1 && player_current_playlist_dirname <= KEYSCAN_9 ) {
+            player_current_track = EEPROM.read(EEPROM_LAST_TRACK_IN_PLAYLIST[player_current_playlist_dirname - '0']);
+
+            // track number of 255 signals "no track"...
+            if (  player_current_track != 255 &&
+                  player_current_track >= player_track_number_min[player_current_playlist_dirname - '0'] && 
+                  player_current_track <= player_track_number_max[player_current_playlist_dirname - '0'] ){
+
+                get_new_track_player_filename(player_current_track, player_current_playlist_dirname, player_current_track_filename);
+                #if defined (debug)
+                    Serial.print(F("kimubo INFO autoplaying "));
+                    Serial.println(player_current_track_filename);   
+                #endif
+                
+                player.play(player_current_track_filename);
+                
+                // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
+                remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
+                // actually in this cse this hould not write anything to the EEPROM, as the same track is played again thus the same values would need to be written an as we use EEPROM.update() this does not really trigger a rewrite.
+   
+            } else {
+
+                // do nothing
+                #if defined (debug)
+                    Serial.print(F("kimubo INFO autoplaying wanted to play a unsensible track "));
+                    Serial.print(player_current_playlist_dirname); 
+                    Serial.print(F(" track "));   
+                    Serial.println(player_current_track);     
+                #endif
+            } // if track ok
+
+        } else {
+
+            // do nothing
+            #if defined (debug)
+                Serial.print(F("kimubo INFO autoplaying wanted to play a unsensible playlist "));
+                Serial.println(player_current_playlist_dirname);   
+            #endif
+             
+        }
+        
+        
+    } // play_last_playlist_and_track_from_eeprom()
+
         
 
 

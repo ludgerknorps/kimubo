@@ -60,6 +60,14 @@
 //        DEBUG_simulatedKeypad_release_key_after_shorthold(inByte);
 //    }
 
+
+    #if defined (AUTO_PLAY)
+        if (isFirstLoop) {
+            isFirstLoop = false;
+            play_last_playlist_and_track_from_eeprom();
+        }
+    #endif
+
  
 
 

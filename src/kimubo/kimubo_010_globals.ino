@@ -71,6 +71,7 @@
 
 
 
+    bool isFirstLoop;
 
 
 // ####################################################################################
@@ -116,13 +117,17 @@
       
       // loudness is set via softwarevolume controll of lkpcm lib
       volatile bool player_is_loudness;
-    
+      void toggleLoudness();  
     
 			// Helper function: make filename from current_track_number
       void get_new_track_player_filename();
 
       // Helper function: while playing each track we spend some time on finding the previous track and the next track -> this will very much speed up continuous playback of whole playlist with all its tracks.
       void find_next_and_previous_files_in_current_playlist();
+
+      // Helper function: store currently played track to EEPROM and then retrieve it 
+      void remember_current_playlist_and_track_in_eeprom(const byte trackNr, const byte playlistNr);
+      uint16_t get_last_playlist_and_track_from_eeprom();
 
 			
 
@@ -166,7 +171,7 @@
     // functions
 		bool sdc_setup();
 
-
+  
 
 // ####################################################################################
 // ####################################################################################
