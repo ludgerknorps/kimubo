@@ -40,10 +40,11 @@
 
 	void setup() {
 
-    // initialize serial communication at 9600 bits per second:
-    Serial.begin(38400);
-    Serial.println(F("Hello to the world of KIMUBO!"));
-    
+    #if defined (debug)
+        // initialize serial communication at 9600 bits per second:
+        Serial.begin(38400);
+        Serial.println(F("Hello to the world of KIMUBO!"));
+    #endif
    
 
     sdc_setup();
