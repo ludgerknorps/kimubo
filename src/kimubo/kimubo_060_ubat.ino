@@ -64,7 +64,7 @@
 		//~ } // setupReadVcc()
 		
 		//~ /* =========================================================== */
-		//~ // called by smMain at device startup + before each track + after last track + after waking up from sleep
+		//~ // called at device startup + before each track + after last track + after waking up from sleep
 		//~ long readVcc() {
 			//~ // STEP 1: save current ADMUX settings to temporary variable
 			//~ byte uBat_OldADMUX = ADMUX;

@@ -267,46 +267,7 @@
           return true; // nothing to setup yet        
       }
     
-    // simulate_a_keypad
-    // this is a DEBUG function to be removed in release-version
-    
-//    void DEBUG_simulatedKeypad_release_key_after_shorthold(char key){
-    //		switch (key) {
-    //			case KEYSCAN_1:
-    //			case KEYSCAN_2:
-    //			case KEYSCAN_3:
-    //			case KEYSCAN_4:
-    //			case KEYSCAN_5:
-    //			case KEYSCAN_6:
-    //			case KEYSCAN_7:
-    //			case KEYSCAN_8:
-    //			case KEYSCAN_9:
-    //			
-    //				// remember what key/playlist we want to play as event-triggers for statemachine are stateless (have no memory)
-    //                keyb_current_playListKey = key;
-    //                
-    //                // if player is playing we use transition B3 in smMain, else we use transition B1
-    ////                smMain.trigger(smMain_event_playOtherPlaylist); // B3-case
-    ////                smMain.trigger(smMain_event_playWav); // B1-case
-    //                
-    //                break;
-    //                
-    //            case KEYSCAN_FFWD:
-    //				
-    //				// skip to next track in playlist
-    ////				smMain.trigger(smMain_event_skip); // E1 transition in smMain
-    //				
-    //				break;
-    //				
-    //			case KEYSCAN_REW:    
-    //				
-    //				// skip to previous track in playlist
-    ////                smMain.trigger(smMain_event_skipBack); // E2 transition in smMain
-    //                
-    //				break;
-    //		} // switch
-//				
-//    } //
+
     
    
 

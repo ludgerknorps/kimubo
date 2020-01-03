@@ -36,7 +36,7 @@
  * Abschnitt LOOP
  */
 
-  //byte inByte; // needed for simulated keypress via Serial.read()
+
 
 	void loop() {
     
@@ -53,12 +53,6 @@
         trans_B2_play_next_track_in_playlist();
         //trans_E1_skip_forward();
     }
-
-//    if (Serial.available() > 0) {
-//        // get incoming byte:
-//        inByte = Serial.read();
-//        DEBUG_simulatedKeypad_release_key_after_shorthold(inByte);
-//    }
 
 
     #if defined (AUTO_PLAY)
