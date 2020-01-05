@@ -66,6 +66,8 @@ void setup() {
     #if defined (AUTO_PLAY)
         isFirstLoop = true; // in case of AUTO_PLAY we need to know when we loop for the first time
     #endif
+
+    playerStoppedSince = 0L; // initial value
     
 
 

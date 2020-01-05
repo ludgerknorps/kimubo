@@ -62,6 +62,35 @@
         }
     #endif
 
+
+    // if playing stopped, go to powersave mode after configurable time
+    if ( lkpcm_isStopped ) {
+    	if ( playerStoppedSince == 0L ){
+    		playerStoppedSince = millis(); 
+    	} else {
+    		if ( millis() - playerStoppedSince > POWERSAVE_IF_STOP_AFTER ){
+    			// save some mAh from the battery and go to deep sleep 
+    			// KIMUBO will only recover via Power-Off-Power-On
+
+				#if defined (debug)
+					Serial.print(F("INFO KIMUBO SHUTDOWN BECAUSE OF INACTIVITY after waiting for [ms] "));
+					Serial.println(POWERSAVE_IF_STOP_AFTER);
+					delay(100); // wait for Serial message to finish...
+				#endif
+				amp_shutdown();
+				
+				set_sleep_mode(SLEEP_MODE_PWR_DOWN);  
+				sleep_enable();  
+				sleep_mode();
+				// now it sleeps... and draws almost no current...
+				
+    		}
+    	}
+    } else {
+    	// if player is not stopped, reset playerStoppedSince
+    	playerStoppedSince = 0L;
+    }
+
  
 
 

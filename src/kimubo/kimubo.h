@@ -69,7 +69,7 @@
 	 */
 
 		// defining debug --> serial output delivers information on internals, timing and cpu load may be a little of compared to non-debug-mode
-   			#define debug
+   			//#define debug
 
 
 	// ####################################################################################
@@ -120,6 +120,13 @@
 		// on startup autoplay the last playlists and track as memorized in EEPROM 
 			#define AUTO_PLAY
 
+
+
+		// if playing stopped, go to powersave mode after configurable time, iff no new track/playlist selected
+		// in milliseconds 
+		// default is 30minutes aka 900000L
+			#define POWERSAVE_IF_STOP_AFTER		900000L
+	
 	// ####################################################################################
 	// ####################################################################################
 	// ####################################################################################
