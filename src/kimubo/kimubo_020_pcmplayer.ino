@@ -82,6 +82,9 @@ bool player_setup(){
 
             // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
             remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
+
+            // also: check for battery voltage
+            checkBatteryVoltageAndShutdownIfNeccessary();
             
         } else {
             // no file in dir --> do nothing, and just for good measurement: stop player (it should be stopped already!)
@@ -105,9 +108,7 @@ bool player_setup(){
         
         #if defined (debug)
           Serial.print(F("trans_B2_play_next_track_in_playlist "));
-          Serial.println(keyb_current_playListKey);   
           Serial.println(player_current_track);
-          Serial.println( player_track_number_max[player_current_playlist_dirname - '0']);
         #endif
 
         if ( player_current_track == player_track_number_max[player_current_playlist_dirname - '0'] ) {
@@ -117,6 +118,10 @@ bool player_setup(){
                 Serial.println(player_current_track_filename);   
             #endif 
             player.stopPlayback(); 
+
+            // also: check for battery voltage
+            checkBatteryVoltageAndShutdownIfNeccessary();
+            
             return;
            
         } else {
@@ -132,6 +137,9 @@ bool player_setup(){
             
             // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
             remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
+
+            // also: check for battery voltage
+            checkBatteryVoltageAndShutdownIfNeccessary();
             
             return;
         }
@@ -146,10 +154,8 @@ bool player_setup(){
         }
         
         #if defined (debug)
-          Serial.print(F("trans_E1_skip_forward "));
-          Serial.println(keyb_current_playListKey);   
+          Serial.print(F("trans_E1_skip_forward "));  
           Serial.println(player_current_track);
-          Serial.println( player_track_number_max[player_current_playlist_dirname - '0']);
         #endif
 
         if ( player_current_track == player_track_number_max[player_current_playlist_dirname - '0'] ) {
@@ -174,6 +180,9 @@ bool player_setup(){
 
             // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
             remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
+
+            // also: check for battery voltage
+            checkBatteryVoltageAndShutdownIfNeccessary();
             
             return;
         }
@@ -188,10 +197,8 @@ bool player_setup(){
         }
         
         #if defined (debug)
-          Serial.print(F("trans_E2_skip_backward "));
-          Serial.println(keyb_current_playListKey);   
+          Serial.print(F("trans_E2_skip_backward ")); 
           Serial.println(player_current_track);
-          Serial.println( player_track_number_min[player_current_playlist_dirname - '0']);
         #endif
 
         if ( player_current_track == player_track_number_min[player_current_playlist_dirname - '0'] ) {
@@ -206,6 +213,9 @@ bool player_setup(){
             // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
             remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
             // actually in this cse this hould not write anything to the EEPROM, as the same track is played again thus the same values would need to be written an as we use EEPROM.update() this does not really trigger a rewrite.
+
+            // also: check for battery voltage
+            checkBatteryVoltageAndShutdownIfNeccessary();
             
             return;
            
@@ -223,6 +233,9 @@ bool player_setup(){
 
                 // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
                 remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
+
+                // also: check for battery voltage
+            	checkBatteryVoltageAndShutdownIfNeccessary();
             
                 return;
             } else {
@@ -236,6 +249,9 @@ bool player_setup(){
                 // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
                 remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
                 // actually in this cse this hould not write anything to the EEPROM, as the same track is played again thus the same values would need to be written an as we use EEPROM.update() this does not really trigger a rewrite.
+
+                // also: check for battery voltage
+            	checkBatteryVoltageAndShutdownIfNeccessary();
                 
                 return;
             }
@@ -302,6 +318,9 @@ bool player_setup(){
                 // as we just started playback, now is a very good time to spend some CPU-cycles on remembering this track in EEPROM
                 remember_current_playlist_and_track_in_eeprom(player_current_track, player_current_playlist_dirname);
                 // actually in this cse this hould not write anything to the EEPROM, as the same track is played again thus the same values would need to be written an as we use EEPROM.update() this does not really trigger a rewrite.
+
+                // also: check for battery voltage
+            	checkBatteryVoltageAndShutdownIfNeccessary();
    
             } else {
 

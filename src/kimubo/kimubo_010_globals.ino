@@ -162,8 +162,11 @@
 		long gv_UBat_ChipsVccCompensationValue; // read from EEPROM at startup
 		long gv_UBat_in_millivolt; 	// holds the measured value
 
+		void setupReadVcc();
+		void readVcc();
 		bool isLowBat();
 		void shutDownBecauseOfUndervoltage();
+		void checkBatteryVoltageAndShutdownIfNeccessary();
 
 
 // ####################################################################################

@@ -71,7 +71,7 @@
 		
 		/* =========================================================== */
 		// called at device startup + before each track + after last track + after waking up from sleep
-		long readVcc() {
+		void readVcc() {
 			
 			// STEP 1: save current ADMUX settings to temporary variable
 			byte uBat_OldADMUX = ADMUX;
@@ -95,6 +95,13 @@
 			 * 		therefore, we have to use a compensation value taken from EEPROM (which must be first stored there beforehand!)
 			 * 		gv_smUBat_ChipsVccCompensationValue: this one is individual for each chip!
 			 * 		(if you don't have an individually measured compensationvalue, then take the generic gv_smUBat_ChipsVccCompensationValue = 1100 * 1023 = 1125300L)
+			 * 		
+			 * 		In order to measure this value do the following:
+			 * 		a) let readVcc() run with default value 1125300L
+			 * 		b) measure with multimeter the real Vcc
+			 * 		c) calculate gv_smUBat_ChipsVccCompensationValue = 1.1 * Vcc_of_multimeter / Vcc_of_readVcc_function * 1023 * 1000
+			 * 		d) write that value gv_smUBat_ChipsVccCompensationValue to EEPROM to the same address you will read it back from at startup
+			 * 			use e.g. 
 			 */
 			byte low  = ADCL; // must read ADCL first - it then locks ADCH  
 			byte high = ADCH; // unlocks both
@@ -122,8 +129,14 @@
 		/* =========================================================== */
 		// function to shutdown the KIMUBO
 		void shutDownBecauseOfUndervoltage(){
+			#if defined (debug)
+				Serial.print(F("ERROR KIMUBO SHUTDOWN BECAUSE OF UNDERVOLTAGE!!! Measured battery voltage is [mV] "));
+				Serial.println(gv_UBat_in_millivolt);
+				delay(100); // wait for Serial message to finish...
+			#endif
 			player.stopPlayback(); 
 			amp_shutdown();
+			
 			// set arduino to deep sleep
 			// it will only recover via Power-Off-Power-On
 			set_sleep_mode(SLEEP_MODE_PWR_DOWN);  
@@ -132,6 +145,15 @@
 			// now it sleeps... and draws almost no current...
 			
 		} // shutDownBecauseOfUndervoltage()
+
+		/* =========================================================== */
+		// helper function that wraps the other three functions...
+		void checkBatteryVoltageAndShutdownIfNeccessary(){
+			readVcc();
+			if ( isLowBat() ){
+				shutDownBecauseOfUndervoltage();
+			}
+		} // checkBatteryVoltageAndShutdownIfNeccessary()
 		
 		
 		

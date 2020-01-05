@@ -54,6 +54,7 @@ void setup() {
     
     setupReadVcc();
     // only continue if voltage is above absolute lower limit
+    checkBatteryVoltageAndShutdownIfNeccessary();
     
     
     
