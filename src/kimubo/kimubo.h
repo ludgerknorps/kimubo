@@ -46,6 +46,11 @@
 
 
 #include <Arduino.h>
+
+// Power saving techniques
+#include <avr/power.h>
+#include <avr/sleep.h>
+
 	
 	
 
@@ -64,57 +69,83 @@
 	 */
 
 		// defining debug --> serial output delivers information on internals, timing and cpu load may be a little of compared to non-debug-mode
-   // #define debug
+   			#define debug
 
 
-  // ####################################################################################
-  // ####################################################################################
-  // ####################################################################################
-  // ####################################################################################
-  // ####################################################################################
-  // ####################################################################################
-  // ####################################################################################
-  // ####################################################################################
-  // ####################################################################################
-  /* 
-   * Abschnitt Main
-   */
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	/* 
+	* Abschnitt Main
+	*/
 
-	// tbd later! 
-    //~ // for seeking, i.e. fast forward or backward in a track
-    //~ //        In order to do that we play a short part of the track,
-    //~ //        then hop to a position a little further, play again, hop again, etc.
-    //~ //        There are two relevant user-defined constants:
-    //~ //          a) SEEK_SPEEDUP       how fast shall seeking be (in times of normal play speed)
-    //~ //          b) SEEK_DURATION_PLAYING  how much of a track shall be played between hops (in milliseconds)
-    //~ #define SEEK_SPEEDUP      10
-    //~ #define SEEK_DURATION_PLAYING 10
-    //~ //        From those user-defined constants we can derive some internally relevant auto-constants:
-    //~ //          c) SEEK_INTERVAL_LENGTH   how long is a one seek interval in total (playing + hopping)
-    //~ //          d) SEEK_INTERVAL_HOP_FWD  how far do we hop forward before playing again
-    //~ //          e) SEEK_INTERVAL_HOP_BWD  how far do we hop backward before playing again
-    //~ #define SEEK_INTERVAL_LENGTH  (1000/SEEK_SPEEDUP)
-    //~ #define SEEK_INTERVAL_HOP_FWD (SEEK_INTERVAL_LENGTH-SEEK_DURATION_PLAYING)
-    //~ #define SEEK_INTERVAL_HOP_BWD (SEEK_INTERVAL_LENGTH+SEEK_DURATION_PLAYING)
-    
-	// tbd later! 
-    //~ // for powersaving there is one relevant user-defined constant:
-    //~ //          a) POWERSAVE_AFTER      after which time (in milliseconds) shall device enter low-power-state
-    //~ //                        coming from idle, the low-power-state is recoverable, 
-    //~ //                        i.e. we can return to idle on e.g. keypress
-    //~ #define POWERSAVE_AFTER     3000000
-    //~ //        From this user-defined constant we can derive some internally relevant auto-constants:
-    //~ //          b) POWERSAVE_AFTER_PAUSE  after which time in pause-state shall device enter low-power-state
-    //~ //                        (in times of POWERSAVE_AFTER, not milliseconds!)
-    //~ //                        coming from pause, the low-power-state is recoverable, 
-    //~ //                        i.e. we can return to pause on e.g. keypress BUT NOT by just turning
-    //~ //                        the volume up again, thus do not choose a too small value here!
-    //~ #define POWERSAVE_AFTER_PAUSE (60*POWERSAVE_AFTER)
+		// tbd later! 
+		//~ // for seeking, i.e. fast forward or backward in a track
+		//~ //        In order to do that we play a short part of the track,
+		//~ //        then hop to a position a little further, play again, hop again, etc.
+		//~ //        There are two relevant user-defined constants:
+		//~ //          a) SEEK_SPEEDUP       how fast shall seeking be (in times of normal play speed)
+		//~ //          b) SEEK_DURATION_PLAYING  how much of a track shall be played between hops (in milliseconds)
+		//~ #define SEEK_SPEEDUP      10
+		//~ #define SEEK_DURATION_PLAYING 10
+		//~ //        From those user-defined constants we can derive some internally relevant auto-constants:
+		//~ //          c) SEEK_INTERVAL_LENGTH   how long is a one seek interval in total (playing + hopping)
+		//~ //          d) SEEK_INTERVAL_HOP_FWD  how far do we hop forward before playing again
+		//~ //          e) SEEK_INTERVAL_HOP_BWD  how far do we hop backward before playing again
+		//~ #define SEEK_INTERVAL_LENGTH  (1000/SEEK_SPEEDUP)
+		//~ #define SEEK_INTERVAL_HOP_FWD (SEEK_INTERVAL_LENGTH-SEEK_DURATION_PLAYING)
+		//~ #define SEEK_INTERVAL_HOP_BWD (SEEK_INTERVAL_LENGTH+SEEK_DURATION_PLAYING)
+		
+		// tbd later! 
+		//~ // for powersaving there is one relevant user-defined constant:
+		//~ //          a) POWERSAVE_AFTER      after which time (in milliseconds) shall device enter low-power-state
+		//~ //                        coming from idle, the low-power-state is recoverable, 
+		//~ //                        i.e. we can return to idle on e.g. keypress
+		//~ #define POWERSAVE_AFTER     3000000
+		//~ //        From this user-defined constant we can derive some internally relevant auto-constants:
+		//~ //          b) POWERSAVE_AFTER_PAUSE  after which time in pause-state shall device enter low-power-state
+		//~ //                        (in times of POWERSAVE_AFTER, not milliseconds!)
+		//~ //                        coming from pause, the low-power-state is recoverable, 
+		//~ //                        i.e. we can return to pause on e.g. keypress BUT NOT by just turning
+		//~ //                        the volume up again, thus do not choose a too small value here!
+		//~ #define POWERSAVE_AFTER_PAUSE (60*POWERSAVE_AFTER)
+		
+		
+		// on startup autoplay the last playlists and track as memorized in EEPROM 
+			#define AUTO_PLAY
 
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	/* 
+	* Abschnitt UBat
+	*/
 
-  // on startup autoplay the last playlists and track as memorized in EEPROM 
+		// the voltage where kimubo shall not startup and shall automatically shut down.
+		// - in future TBD! - we differentiate between batteries and accumulators.
+		// for that we will introduce a switch/jumper/... in the back of the KIMUBO - only to be set by parents.
+		// batteries shall be discharged as much as possible, i.e. down to 0V (ideally) 
+		// accus shall be only discharged down to their limit of about 1000mV in order to increase their life expectancy
+		// all voltages are given in mV!
+		#define UBAT_ABSOLUTE_MINIMUM_VOLTAGE_BAT		0
+		#define UBAT_ABSOLUTE_MINIMUM_VOLTAGE_ACCU		4000
 
-    #define AUTO_PLAY
+		
+
+		
+	
 		
 
 	// ####################################################################################
@@ -138,7 +169,7 @@
 			#define AUDIO_PIN_OUT_HIGH		9 
 			#define AUDIO_PIN_OUT_LOW		10
 
-			#define AUDIO_PIN_LOUDNESS  2
+			#define AUDIO_PIN_LOUDNESS  	2
 
 
 	// ####################################################################################
@@ -197,8 +228,7 @@
                                   // At first we do not use any wear leveling as the estimated 100000 cycles of EEPROM life amount to
                                   // approx. 100000/10/365 ~= 27 years of use with ten uses per day each day of the year...
 		
-		// tbd later! 
-		//~ static const byte EEPROM_VCCCOMPENSATION_ADDR	=	EEPROM_BASE_ADDR + 0; // four bytes used
+		static const byte EEPROM_VCCCOMPENSATION_ADDR	=	EEPROM_BASE_ADDR + 0; // four bytes used
 		
 		static const byte EEPROM_LAST_PLAYLIST_ADDR		=	EEPROM_BASE_ADDR + 4	; // one byte used
 		

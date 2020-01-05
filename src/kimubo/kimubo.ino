@@ -40,6 +40,10 @@
 #include <SdFat.h>              // need to include the SD library
 #include <LKpcm.h>    
 
+// Power saving techniques
+#include <avr/power.h>
+#include <avr/sleep.h>
+
 
 
 // ####################################################################################
@@ -88,16 +92,6 @@
 /* 
  * Abschnitt UBat measurement
  */
- 
-	
-	
-		/* some globals */
-		
-		// TBD. put into globals
-		
-		
-		
-		
 		
 	// see kimubo_060_ubat.ino
 		

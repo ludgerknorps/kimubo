@@ -38,15 +38,25 @@
 
 	
 
-	void setup() {
+void setup() {
+
+    // disable ADC and TWI (I2C) and Serial in order to save power
+    // power_adc_disable();
+    power_twi_disable();
+    power_usart0_disable();
 
     #if defined (debug)
         // initialize serial communication at 9600 bits per second:
+        power_usart0_enable();
         Serial.begin(38400);
         Serial.println(F("Hello to the world of KIMUBO!"));
     #endif
-   
-
+    
+    setupReadVcc();
+    // only continue if voltage is above absolute lower limit
+    
+    
+    
     sdc_setup();
     keyb_setup();
     player_setup();
@@ -59,6 +69,6 @@
 
 
 
-	} // setup()
+} // setup()
   
 // EOF 

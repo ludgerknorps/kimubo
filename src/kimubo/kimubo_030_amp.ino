@@ -21,4 +21,19 @@
  *   If not, see <https://www.gnu.org/licenses/>.
  * 
  */
- 
+
+
+
+	/* =========================================================== */
+	// function shutdown the AMP using SHDN-function of PAM8403
+	void amp_shutdown(){
+		// do nothing (yet)
+		// TBD later
+	} // amp_shutdown()
+
+	/* =========================================================== */
+	// function activate the AMP using SHDN-function of PAM8403
+	void amp_activate(){
+		// do nothing (yet)
+		// TBD later
+	} // amp_activate()

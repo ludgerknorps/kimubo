@@ -88,47 +88,62 @@
  */
 
 		// global variables	
-
-      // Our Player instance
-      static LKpcm player;
-      
-
-      // player needs to know a) current playlist/dir and b) current track/file and - only for interupts by system-messages - also needs to remember c) postition-of-interupt
-      // we only have playlists '0' to '8' thus length of the playlist-string must be 1
-      static char player_current_playlist_dirname;
-      static byte player_current_track;
-      // in each playlist/dir we have files 0.WAV, 1.WAV, ..., 10.WAV, 11.WAV, ..., 100.WAV, 101.WAV, ... 254.WAV (that is the maximum! 255 is "no-value") Thus length of this string is at most SUFFIX_PCM_FILES + 3
-      // additionally: 1 char each for leading and separating "/" and the dirname and trailing '\0'
-      // = 4+3+1+1+1+3 = 13
-      // to be safe and to also include "SYSTEM" dir: 18
-      static char player_current_track_filename[18];
-      
-
-      // we also have to memorize:
-      // a) how many tracks are in each of the dirs? --> this is done at startup of the device (and means, never ever remove SDC in operation!)
-      //    actually we rather remember: highest "track-number" per dir as there might be missing tracks in a dir
-      //    e.g.   /1 has four tracks "/1/0.WAV", "/1/1.WAV", /1/2.WAV", /1/3.WAV" --> highest tracknumber is "3" and there are four files
-      //      but: /2 has also four files "/2/0.WAV", "/2/1.WAV", /2/7.WAV", /2/8.WAV" --> highest tracknumber is "8" and there are still only four files
-      //    the player must know that "8" is highest tracknumber. If it is playing "/2/1.WAV" and wants to play next track, it knows (because of tracknumber-max) that there are "next tracks".
-      //    It then tries to play "/2/2.WAV" and encounters "notExist", tries "/2/3.WAV", again "notExist", ..., tries "/2/7.WAV", here you go!
-      // b) same also for lowest "track-number", e.g. if /2 has four files "/2/2.WAV", "/2/3.WAV", /2/7.WAV", /2/8.WAV"
-      volatile byte player_track_number_min[9]; // one array field per playlist (we dont need that for "systemmessages").
-      volatile byte player_track_number_max[9]; // one array field per playlist (we dont need that for "systemmessages").
-      
-      // loudness is set via softwarevolume controll of lkpcm lib
-      volatile bool player_is_loudness;
-      void toggleLoudness();  
-    
+		
+		// Our Player instance
+		static LKpcm player;
+		
+		
+		// player needs to know a) current playlist/dir and b) current track/file and - only for interupts by system-messages - also needs to remember c) postition-of-interupt
+		// we only have playlists '0' to '8' thus length of the playlist-string must be 1
+		static char player_current_playlist_dirname;
+		static byte player_current_track;
+		// in each playlist/dir we have files 0.WAV, 1.WAV, ..., 10.WAV, 11.WAV, ..., 100.WAV, 101.WAV, ... 254.WAV (that is the maximum! 255 is "no-value") Thus length of this string is at most SUFFIX_PCM_FILES + 3
+		// additionally: 1 char each for leading and separating "/" and the dirname and trailing '\0'
+		// = 4+3+1+1+1+3 = 13
+		// to be safe and to also include "SYSTEM" dir: 18
+		static char player_current_track_filename[18];
+		
+		
+		// we also have to memorize:
+		// a) how many tracks are in each of the dirs? --> this is done at startup of the device (and means, never ever remove SDC in operation!)
+		//    actually we rather remember: highest "track-number" per dir as there might be missing tracks in a dir
+		//    e.g.   /1 has four tracks "/1/0.WAV", "/1/1.WAV", /1/2.WAV", /1/3.WAV" --> highest tracknumber is "3" and there are four files
+		//      but: /2 has also four files "/2/0.WAV", "/2/1.WAV", /2/7.WAV", /2/8.WAV" --> highest tracknumber is "8" and there are still only four files
+		//    the player must know that "8" is highest tracknumber. If it is playing "/2/1.WAV" and wants to play next track, it knows (because of tracknumber-max) that there are "next tracks".
+		//    It then tries to play "/2/2.WAV" and encounters "notExist", tries "/2/3.WAV", again "notExist", ..., tries "/2/7.WAV", here you go!
+		// b) same also for lowest "track-number", e.g. if /2 has four files "/2/2.WAV", "/2/3.WAV", /2/7.WAV", /2/8.WAV"
+		volatile byte player_track_number_min[9]; // one array field per playlist (we dont need that for "systemmessages").
+		volatile byte player_track_number_max[9]; // one array field per playlist (we dont need that for "systemmessages").
+		
+		// loudness is set via softwarevolume controll of lkpcm lib
+		volatile bool player_is_loudness;
+		void toggleLoudness();  
+		
 			// Helper function: make filename from current_track_number
-      void get_new_track_player_filename();
+		void get_new_track_player_filename();
+		
+		// Helper function: while playing each track we spend some time on finding the previous track and the next track -> this will very much speed up continuous playback of whole playlist with all its tracks.
+		void find_next_and_previous_files_in_current_playlist();
+		
+		// Helper function: store currently played track to EEPROM and then retrieve it 
+		void remember_current_playlist_and_track_in_eeprom(const byte trackNr, const byte playlistNr);
+		uint16_t get_last_playlist_and_track_from_eeprom();
 
-      // Helper function: while playing each track we spend some time on finding the previous track and the next track -> this will very much speed up continuous playback of whole playlist with all its tracks.
-      void find_next_and_previous_files_in_current_playlist();
 
-      // Helper function: store currently played track to EEPROM and then retrieve it 
-      void remember_current_playlist_and_track_in_eeprom(const byte trackNr, const byte playlistNr);
-      uint16_t get_last_playlist_and_track_from_eeprom();
-
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+/* 
+ * Abschnitt AMP
+ */
+		void amp_activate();
+		void amp_shutdown();
 			
 
 // ####################################################################################
@@ -144,11 +159,11 @@
  * Abschnitt UBat measurement
  */
 
+		long gv_UBat_ChipsVccCompensationValue; // read from EEPROM at startup
+		long gv_UBat_in_millivolt; 	// holds the measured value
 
-
-
-		long gv_UBat_ChipsVccCompensationValue;
-		long gv_UBat_in_millivolt; 
+		bool isLowBat();
+		void shutDownBecauseOfUndervoltage();
 
 
 // ####################################################################################
@@ -165,7 +180,7 @@
  */
     
     // File system object.
-    SdFat sd;    
+		SdFat sd;    
 
 
     // functions
