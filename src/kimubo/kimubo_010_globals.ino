@@ -144,6 +144,8 @@
 /* 
  * Abschnitt AMP
  */
+
+ 		void amp_setup();
 		void amp_activate();
 		void amp_shutdown();
 			

@@ -22,18 +22,25 @@
  * 
  */
 
+ 	void amp_setup(){
+ 		pinMode(AMP_PIN_SUSPEND, OUTPUT);
+ 		amp_activate();
+ 	}
+
 
 
 	/* =========================================================== */
 	// function shutdown the AMP using SHDN-function of PAM8403
 	void amp_shutdown(){
-		// do nothing (yet)
-		// TBD later
+
+		clrPinD0_D21(AMP_PIN_SUSPEND);
+		
 	} // amp_shutdown()
 
 	/* =========================================================== */
 	// function activate the AMP using SHDN-function of PAM8403
 	void amp_activate(){
-		// do nothing (yet)
-		// TBD later
+
+		setPinD0_D21(AMP_PIN_SUSPEND);
+		
 	} // amp_activate()

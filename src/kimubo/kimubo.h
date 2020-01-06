@@ -396,7 +396,8 @@
 			// tbd later! #define AMP_PIN_VOL_FEEDBACK					A6
 			// used as digital output pins:
 			// tbd later! #define AMP_PIN_MUTE	 						    3
-			// tbd later! #define AMP_PIN_SUSPEND							  255 
+			
+			#define AMP_PIN_SUSPEND							  4 
 			
 			
 	// ####################################################################################
