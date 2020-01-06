@@ -80,36 +80,70 @@
 	 */
 		
 	//  global variable, we only need one filename at a time
-	static char messageFileName[8];  
+	char messageFileName[11];
 
-	char* getMessageFilenameFromByteValue(byte byteValue){
+	/* =========================================================== */
+	void getMessageFilenameFromByteValue(const byte byteValue){
 		
 		// we overwrite the char-array at address messageFileName, thus we need a pointer to that address which we can manipulate
-		char* p = messageFileName;
+		const char* temp_zero = "0";
+		const char* temp_doublezero = "00";
+		char temp_filename[4];
+
+		// add path up front
+		strcpy(messageFileName, SDC_SYSTEM_MESSAGES_DIR); 
 		
 		// all message-files have a fixed filename-length of xxx.yyy, 
 		//     where xxx is the corresponding byte value (as a String withlength 3) and 
 		//     .yyy is the globally defined SUFFIX_PCM_FILES (typically something like ".WAV")
 		if (byteValue < 10) {
-			p = '0';					// write '0' to address messageFileName			
-			p++;
-			p = '0';					// write another '0' in next position  ( messageFileName now is "00xxxxxx" where x can be any char including '\0')
-			p++;
-			itoa(byteValue, p, 10); 	// write the single digit into next position ( messageFileName now is "00DTxxxx" where D is digit, and T='\0', and x can be any char including '\0')
+			strcat(messageFileName, temp_doublezero); 
+			itoa(byteValue, temp_filename, 10); 	// write the single digit into next position ( messageFileName now is "/M/00DTxxxx" where M is dir and D is digit, and T='\0', and x can be any char including '\0')
 		} else if (byteValue < 100) {
-			p = '0';					// write '0' to address messageFileName		
-			p++;
-			itoa(byteValue, p, 10); 	// write two digits into next positions ( messageFileName now is "0DDTxxxx" where D is digit, and T='\0', and x can be any char including '\0')
+			strcat(messageFileName, temp_zero); 
+			itoa(byteValue, temp_filename, 10); 	// write two digits into next positions ( messageFileName now is "/M/0DDTxxxx" where M is dir and D is digit, and T='\0', and x can be any char including '\0')
 		} else {
-			itoa(byteValue, p, 10); 	// write three digits into next positions ( messageFileName now is "DDDTxxxx" where D is digit, and T='\0', and x can be any char including '\0')
+			itoa(byteValue, temp_filename, 10); 	// write three digits into next positions ( messageFileName now is "/M/DDDTxxxx" where M is dir and D is digit, and T='\0', and x can be any char including '\0')
 		}
-		
+		strcat(messageFileName, temp_filename); 
 		// now add file-suffix 
-		strncat(messageFileName, SUFFIX_PCM_FILES, 8); 
-		// messageFileName now is "DDD.WAVT" where D is digit, ".WAV" is just that and T='\0'
+		strcat(messageFileName, SUFFIX_PCM_FILES); 
+		// messageFileName now is "/M/DDD.WAVT" where M is dir and D is digit, ".WAV" is just that and T='\0'
+		#if defined (debug)
+	        Serial.print(F("kimubo INFO created message filename "));
+	        Serial.println(messageFileName);   
+	    #endif
 		return messageFileName;
 		
-	}
+	} // getMessageFilenameFromByteValue()
+
+
+	/* =========================================================== */
+	void playMessage(const byte* theMessage, const byte theMessageLength){
+
+		byte i;
+		byte single_message;
+		for ( i=0; i < theMessageLength; i++){
+			single_message = pgm_read_byte(theMessage+i);
+			#if defined (debug)
+		        Serial.print(F("kimubo INFO playMessage "));
+		        Serial.print((int) theMessage);   
+		        Serial.print(F(" message #"));
+		        Serial.print(i); 
+		        Serial.print(F(" which is ")); 
+		        Serial.println((byte) single_message);
+		    #endif
+			
+			getMessageFilenameFromByteValue(single_message);
+			player.play(messageFileName);
+			// wait for finishing playing this message-part:
+			while (lkpcm_isPlaying) {
+				;
+			}
+			lkpcm_isFinishedPlayingFile = false; // manually reset this as there is no "next file" in message-part...
+		} // for
+		
+	} // playMessage()
 	
 // EOF
  

@@ -69,7 +69,26 @@
 	 */
 
 		// defining debug --> serial output delivers information on internals, timing and cpu load may be a little of compared to non-debug-mode
-   			//#define debug
+   		//	#define debug
+
+
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	// ####################################################################################
+	/* 
+	 * Abschnitt MESSAGES
+	 */
+   		// define messages as byte arrays in progmem
+   		// see kimubo_090_messages.ino for description
+   		
+   		const byte message_readAll[] PROGMEM = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+   		const byte message_greeting[] PROGMEM = { 254 };
 
 
 	// ####################################################################################
@@ -442,6 +461,7 @@
 
 			// define how the subdir is named, that holds system-message-pcm-files
 			// relevant for "normal" PCM files as well as message-files.
-			const char SDC_SYSTEM_MESSAGES_DIR[7] = "SYSTEM";
+			// must have leading and trailing '/'
+			const char SDC_SYSTEM_MESSAGES_DIR[4] = "/M/";
 
 #endif // KIMUBO_H definition

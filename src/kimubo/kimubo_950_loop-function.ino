@@ -58,6 +58,9 @@
     #if defined (AUTO_PLAY)
         if (isFirstLoop) {
             isFirstLoop = false;
+
+    		playMessage(message_greeting, sizeof(message_greeting));
+            
             play_last_playlist_and_track_from_eeprom();
         }
     #endif

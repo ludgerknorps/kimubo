@@ -57,11 +57,14 @@ void setup() {
     checkBatteryVoltageAndShutdownIfNeccessary();
     
     
-    
+    amp_setup();
     sdc_setup();
     keyb_setup();
     player_setup();
-    amp_setup();
+   	
+
+
+    
 
     
     #if defined (AUTO_PLAY)

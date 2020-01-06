@@ -338,6 +338,8 @@ bool player_setup(){
             // do nothing
             #if defined (debug)
                 Serial.print(F("kimubo INFO autoplaying wanted to play a unsensible playlist "));
+                Serial.print((byte) player_current_playlist_dirname);
+                Serial.print(F(" : "));
                 Serial.println(player_current_playlist_dirname);   
             #endif
              
