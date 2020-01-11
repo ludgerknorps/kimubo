@@ -154,6 +154,26 @@
 				shutDownBecauseOfUndervoltage();
 			}
 		} // checkBatteryVoltageAndShutdownIfNeccessary()
+
+
+		/* =========================================================== */
+		// in parent-admin-mode: device reads the current voltage to user (via PCM-files!)
+		void batteryVoltageAsMessageToParents(){
+			readVcc();
+
+			// from voltage in millivolts to message...
+			byte message_VccVoltage[] = { 0, 10, 0, 11}; // default is <Null><Komma><Null><Volt>; "0" values are then changed to correct values...
+
+			// e.g. 4865 mV --> 4		the first digit of Vcc, it is always floored() and not arithmetically rounded.
+			message_VccVoltage[0] = ( (int) (gv_UBat_in_millivolt/1000) );
+			//message_VccVoltage[0] = 4;
+			// e.g. 4865 mV --> 8		the second digit of Vcc, it is rounded. we floor() again as this is much cheaper (in CPU cycles) than foing floating point arithmetic!
+			message_VccVoltage[2] = ( (int) ( (gv_UBat_in_millivolt - (message_VccVoltage[0]*1000) ) / 100) );
+			//message_VccVoltage[2] = 7;
+			
+			playMessage(message_VccVoltage, sizeof(message_VccVoltage), false);
+			
+		} // batteryVoltageAsMessageToParents()
 		
 		
 		

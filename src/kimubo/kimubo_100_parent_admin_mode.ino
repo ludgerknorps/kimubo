@@ -32,6 +32,9 @@
 	/* =========================================================== */
 	// this function blocks loop() until PowerOff-PowerOn Reset!!
 	void runParentAdminMode(){
+
+		delay(500); // wait a short time for AMP and so on to settle if messages is all we play...
+		
 		if ( keypad.isPressed(KEYSCAN_1) ) {
 			parentAdminModeReadVcc();
 		}
@@ -45,5 +48,5 @@
 
 	/* =========================================================== */
 	void parentAdminModeReadVcc(){
-		playMessage(message_readAll, sizeof(message_readAll));
+		batteryVoltageAsMessageToParents();
 	}

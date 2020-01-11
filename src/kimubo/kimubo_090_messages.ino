@@ -120,11 +120,20 @@
 
 	/* =========================================================== */
 	void playMessage(const byte* theMessage, const byte theMessageLength){
+		playMessage(theMessage, theMessageLength, true);
+	}
+
+	/* =========================================================== */
+	void playMessage(const byte* theMessage, const byte theMessageLength, const bool fromProgMem){
 
 		byte i;
 		byte single_message;
 		for ( i=0; i < theMessageLength; i++){
-			single_message = pgm_read_byte(theMessage+i);
+			if (fromProgMem) {
+				single_message = pgm_read_byte(theMessage+i);
+			} else {
+				single_message = theMessage[i];
+			}
 			#if defined (debug)
 		        Serial.print(F("kimubo INFO playMessage "));
 		        Serial.print((int) theMessage);   

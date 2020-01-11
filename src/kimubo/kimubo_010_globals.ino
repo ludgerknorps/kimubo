@@ -172,6 +172,8 @@
 		void shutDownBecauseOfUndervoltage();
 		void checkBatteryVoltageAndShutdownIfNeccessary();
 
+		void batteryVoltageAsMessageToParents();
+
 
 // ####################################################################################
 // ####################################################################################
@@ -230,7 +232,8 @@
 	extern char messageFileName[11];
 
 	void getMessageFilenameFromByteValue(byte byteValue);
-	void playMessage(const byte* theMessage);
+	void playMessage(const byte* theMessage, const byte theMessageLength);
+	void playMessage(const byte* theMessage, const byte theMessageLength, const bool fromProgMem);
 
 
 // EOF
