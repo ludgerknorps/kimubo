@@ -21,24 +21,29 @@
  *   If not, see <https://www.gnu.org/licenses/>.
  * 
  */
- 
+
+  	/* =========================================================== */
+	bool checkForParentAdminModeAtDeviceStartup(){
+		return keypad.isPressed(KEYSCAN_1);
+		// add further keys here later if necessary like in 
+		// 		return keypad.isPressed(KEYSCAN_1) || keypad.isPressed(KEYSCAN_2)
+	}
+
+	/* =========================================================== */
+	// this function blocks loop() until PowerOff-PowerOn Reset!!
+	void runParentAdminMode(){
+		if ( keypad.isPressed(KEYSCAN_1) ) {
+			parentAdminModeReadVcc();
+		}
 
 
+		while (1); // block device until PowerOff-PowerOn Reset!!
+		
+	} // runParentAdminMode()
 
-#include "kimubo.h"
+	
 
-//adapted version of libraries!
-#include "local.lib/Keypad/src/Keypad.h"
-#include "local.lib/Keypad/src/Keypad.cpp"
-#include "local.lib/Keypad/src/Key.h"
-#include "local.lib/Keypad/src/Key.cpp"
-
-// wir verwenden das Arduino Pro Mini interne EEPROM zum speichern von Einstellungen
-#include <EEPROM.h>
-
-#include <SdFat.h>              // need to include the SD library
-#include <LKpcm.h>    
-
-// Power saving techniques
-#include <avr/power.h>
-#include <avr/sleep.h>
+	/* =========================================================== */
+	void parentAdminModeReadVcc(){
+		playMessage(message_readAll, sizeof(message_readAll));
+	}

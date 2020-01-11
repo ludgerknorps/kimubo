@@ -37,71 +37,81 @@
  */
 
 
-
+	/* =========================================================== */
 	void loop() {
     
 		// check if something is happening on the keypad (e.g. key pressed released)
 		keypad.getKey(); // we only need to check for one key as we do not use multikey 
 
-    // check loudness switch
-    if ( player_is_loudness != digitalRead(AUDIO_PIN_LOUDNESS ) ) {
-        toggleLoudness();
-    }
-
-    // if playing a playlist and we finished a track, continue with next track, iff there is one
-    if ( lkpcm_isFinishedPlayingFile ) {
-        trans_B2_play_next_track_in_playlist();
-        //trans_E1_skip_forward();
-    }
-
-
-    #if defined (AUTO_PLAY)
+	    // check loudness switch
+	    if ( player_is_loudness != digitalRead(AUDIO_PIN_LOUDNESS ) ) {
+	        toggleLoudness();
+	    }
+	
+	    // if playing a playlist and we finished a track, continue with next track, iff there is one
+	    if ( lkpcm_isFinishedPlayingFile ) {
+	        trans_B2_play_next_track_in_playlist();
+	        //trans_E1_skip_forward();
+	    }
+	
+		// some things shall only be done at device startup (= in first call of loop() )
         if (isFirstLoop) {
             isFirstLoop = false;
 
-
-			// automatically, the greeting message is played at startup
-    		playMessage(message_greeting, sizeof(message_greeting));
+			// at first, startup device in parent admin mode or in normal playback mode
+			if ( checkForParentAdminModeAtDeviceStartup() ) {
+				// parent admin mode!
+				
+				// we only call a simple function here that holds all of the parentAdminMode
+				// this keeps the loop() simple...
+				// this function is blocking loop() until ended!
+				runParentAdminMode();
+				
+				
+			} else {
+				// normal playback mode
+				
+				// automatically, the greeting message is played at startup
+	    		playMessage(message_greeting, sizeof(message_greeting));
+	
+				
+				#if defined (AUTO_PLAY)
+		    		// now look for last saved track/playlist and play that            
+		            play_last_playlist_and_track_from_eeprom();
+			    #endif
+			}
 
 			
-
-    		// now look for last saved track/playlist and play that            
-            play_last_playlist_and_track_from_eeprom();
         }
-    #endif
-
-
-    // if playing stopped, go to powersave mode after configurable time
-    if ( lkpcm_isStopped ) {
-    	if ( playerStoppedSince == 0L ){
-    		playerStoppedSince = millis(); 
-    	} else {
-    		if ( millis() - playerStoppedSince > POWERSAVE_IF_STOP_AFTER ){
-    			// save some mAh from the battery and go to deep sleep 
-    			// KIMUBO will only recover via Power-Off-Power-On
-
-				#if defined (debug)
-					Serial.print(F("INFO KIMUBO SHUTDOWN BECAUSE OF INACTIVITY after waiting for [ms] "));
-					Serial.println(POWERSAVE_IF_STOP_AFTER);
-					delay(100); // wait for Serial message to finish...
-				#endif
-				amp_shutdown();
-				
-				set_sleep_mode(SLEEP_MODE_PWR_DOWN);  
-				sleep_enable();  
-				sleep_mode();
-				// now it sleeps... and draws almost no current...
-				
-    		}
-    	}
-    } else {
-    	// if player is not stopped, reset playerStoppedSince
-    	playerStoppedSince = 0L;
-    }
-
- 
-
-
+	
+	
+	    // if playing stopped, go to powersave mode after configurable time
+	    if ( lkpcm_isStopped ) {
+	    	if ( playerStoppedSince == 0L ){
+	    		playerStoppedSince = millis(); 
+	    	} else {
+	    		if ( millis() - playerStoppedSince > POWERSAVE_IF_STOP_AFTER ){
+	    			// save some mAh from the battery and go to deep sleep 
+	    			// KIMUBO will only recover via Power-Off-Power-On
+	
+					#if defined (debug)
+						Serial.print(F("INFO KIMUBO SHUTDOWN BECAUSE OF INACTIVITY after waiting for [ms] "));
+						Serial.println(POWERSAVE_IF_STOP_AFTER);
+						delay(100); // wait for Serial message to finish...
+					#endif
+					amp_shutdown();
+					
+					set_sleep_mode(SLEEP_MODE_PWR_DOWN);  
+					sleep_enable();  
+					sleep_mode();
+					// now it sleeps... and draws almost no current...
+					
+	    		}
+	    	}
+	    } else {
+	    	// if player is not stopped, reset playerStoppedSince
+	    	playerStoppedSince = 0L;
+	    }
 
 	} // loop()	 
 	
