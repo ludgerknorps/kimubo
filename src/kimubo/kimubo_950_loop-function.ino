@@ -59,8 +59,13 @@
         if (isFirstLoop) {
             isFirstLoop = false;
 
+
+			// automatically, the greeting message is played at startup
     		playMessage(message_greeting, sizeof(message_greeting));
-            
+
+			
+
+    		// now look for last saved track/playlist and play that            
             play_last_playlist_and_track_from_eeprom();
         }
     #endif
