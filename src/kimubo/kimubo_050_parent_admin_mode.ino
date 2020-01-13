@@ -43,25 +43,70 @@
 	// this function blocks until PowerOff-PowerOn Reset!!
 	void parentAdminModeLoop(){
 
+		/*
+		 * ok, what can the (parent) user do in this parent admin mode?
+		 * 
+		 * a) press key1 (upper left) --> device tells the current battery voltage to user
+		 * 
+		 * b) TBD LATER! 
+		 *    press key 2 (upper middle) repeatedly --> toggle loudness:
+		 * 		first press: device tells the current loudness setting to user
+		 * 		each following press: loudness toggles and device tells new setting
+		 * 		
+		 * 		loudness has the following states: OFF, ON
+		 * 		
+		 * c) TBD LATER! 
+		 *    press key 3 (upper right) repeatedly --> toggle sleepTimer:
+		 * 		first press: device tells the current sleepTimer setting to user
+		 * 		each following press: sleepTimer toggles and device tells new setting
+		 * 		
+		 * 		sleepTimer has the following states: OFF, 15min, 30min
+		 * 		
+		 * d) TBD LATER! 
+		 *    press key 4 (middle left) repeatedly --> toggle Greeting:
+		 * 		first press: device tells the current Greeting setting to user
+		 * 		each following press: Greeting toggles and device tells new setting
+		 * 		
+		 * 		Greeting has the following states: OFF, ON-FIXED, ON-RANDOM
+		 * 		where 	ON-FIXED will always play file 254.WAV and 
+		 * 				ON-RANDOM plays (randomly) one of 245.WAV .. 254.WAV
+		 * 		
+		 * e) TBD LATER! 
+		 *    press key 5 (middle middle) repeatedly --> toggle Autoplay:
+		 * 		first press: device tells the current Autoplay setting to user
+		 * 		each following press: Autoplay toggles and device tells new setting
+		 * 		
+		 * 		Autoplay has the following states: OFF, ON
+		 * 		
+		 * 	
+		 * 		
+		 * other than in normal playback mode the actions are carried out at pressing the key (compared to releasing a key)
+		 */
+
 		char c;
 
-		// wait for all keys to be released;
-		while (keypad.countPressed() > 0) {
-			keypad.getKeys();
-		}
-	
+		keyb_waitForAllKeysToBeReleased();
+
+		// we only leave parent admin mode by power-off-on-reset
 		while (1){
 
 			c = keypad.waitForKey();
 		
 			if ( c == KEYSCAN_1 ) {
 				parentAdminModeReadVcc();
+				keyb_waitForAllKeysToBeReleased();
 			}
 
-			// wait for all keys to be released;
-			while (keypad.countPressed() > 0) {
-				keypad.getKeys(); // do nothing but waiting...
+			if ( c == KEYSCAN_2 ) {
+				parentAdminModeReadVcc();
+				keyb_waitForAllKeysToBeReleased();
 			}
+
+			
+
+			
+
+			
 			
 		}
 		
