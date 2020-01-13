@@ -47,7 +47,7 @@
 		static char keybPressedKey = NULL; 	// is set to a key that is pressed alone. Used to act only at release of this key, not on pressing it. Also used for acting on hold of key.
 		static char keybHeldKey = NULL; 		//used to remember which key was held (to act on its release)
 
-    static char keyb_current_playListKey = ' ';
+   		static char keyb_current_playListKey = ' ';
 
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -262,6 +262,18 @@
 		}
 
 
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+    // 11. helper functions
+		
+		/* =========================================================== */
+		void keyb_waitForAllKeysToBeReleased(){
+			// wait for all keys to be released this function blocks everything else!!!
+			while (keypad.countPressed() > 0) {
+				keypad.getKeys(); // do nothing but waiting...
+			}
+		}
     
    
 

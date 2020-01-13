@@ -218,6 +218,8 @@
     void keyb_addEventListenerNormalMode();
     void keyb_addEventListenerParentAdminMode();
 
+    void keyb_waitForAllKeysToBeReleased()
+
     extern char keyb_current_playListKey;
 
     
