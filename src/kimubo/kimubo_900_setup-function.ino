@@ -72,7 +72,32 @@ void setup() {
     #endif
 
     playerStoppedSince = 0L; // initial value
-    
+
+
+    // now decide which mode to use the device in:
+    // a) normal playback mode
+    // b) parent admin mode
+    //
+    // each has its own loop()
+
+    // at first, startup device in parent admin mode or in normal playback mode
+	if ( checkForParentAdminModeAtDeviceStartup() ) {
+		// parent admin mode!
+
+		// add parentAdminMode Keypad Event listener
+		keyb_addEventListenerParentAdminMode();
+
+		// this function loops until PowerOff-PowerOn Reset (normal loop() is never called!)
+		parentAdminModeLoop();
+		
+	} else {
+		// normal playback mode
+
+		// add normalMode Keypad Event listener
+		keyb_addEventListenerNormalMode();
+		
+		// normal loop function is called autiomatically by arduino environment
+	}
 
 
 

@@ -101,34 +101,9 @@
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
 	// 9. the eventListener callback function for different types of keys
-
-    void DEBUG_keypad_callback_onEvent( char key){
-        switch (keypad.getState()){
-          case PRESSED:
-            #if defined (debug)
-                Serial.print(F("PRESSED "));
-                Serial.println(key);
-            #endif
-            break; // we don't react on keypressing, only on holding and especially on releasing a key
-            
-          case HOLD:
-            #if defined (debug)
-                Serial.print(F("HOLD "));
-                Serial.println(key);
-            #endif    
-            break;
-        
-          case RELEASED:
-            #if defined (debug)
-                Serial.print(F("RELEASED "));
-                Serial.println(key);
-            #endif
-            break;
-        }
-    }
-    
 	
-		void keypad_callback_onEvent( char key){
+		/* =========================================================== */
+		void keypad_callback_onEvent_normalMode( char key){
 			
 
 				switch (keypad.getState()){
@@ -250,24 +225,42 @@
 	            
 					} // switch
 
-		} // keypadEvent
+		} // keypad_callback_onEvent_normalMode
+
+
+		/* =========================================================== */
+		void keypad_callback_onEvent_parentAdminMode( char key ){
+			
+		} // keypad_callback_onEvent_parentAdminMode()
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
     // 10. the keypad setup function
-      bool keyb_setup(){
+		
+		/* =========================================================== */
+		bool keyb_setup(){
+		
+			keypad.setHoldTime(KEYB_HOLD_TIME);
+			keypad.setDebounceTime(KEYB_DEBOUNCE_TIME);
+			// add an event listener 
+			keypad.addEventListener(keypad_callback_onEvent_normalMode); 
+			
+			return true; // nothing to setup yet        
+		}
 
-          keypad.setHoldTime(KEYB_HOLD_TIME);
-          keypad.setDebounceTime(KEYB_DEBOUNCE_TIME);
-          // add an event listener 
-          keypad.addEventListener(keypad_callback_onEvent); 
-          // A second callback just for debugging purpose: it does nothing fsm-wise but just prints the key-events on Serial
-          //keypad.addEventListener(DEBUG_keypad_callback_onEvent);
- 
-          return true; // nothing to setup yet        
-      }
-    
+		/* =========================================================== */
+		void keyb_addEventListenerNormalMode(){
+			// add an event listener 
+		  	keypad.addEventListener(keypad_callback_onEvent_normalMode); 
+		}
+
+		/* =========================================================== */
+		void keyb_addEventListenerParentAdminMode(){
+			// add an event listener 
+		  	keypad.addEventListener(keypad_callback_onEvent_parentAdminMode); 
+		}
+
 
     
    

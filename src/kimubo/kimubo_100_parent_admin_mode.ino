@@ -24,29 +24,45 @@
 
   	/* =========================================================== */
 	bool checkForParentAdminModeAtDeviceStartup(){
-		return keypad.isPressed(KEYSCAN_1);
-		// add further keys here later if necessary like in 
-		// 		return keypad.isPressed(KEYSCAN_1) || keypad.isPressed(KEYSCAN_2)
+		// we enter parent admin mode by having two keys pressed at startup --> getkey*S*()
+		delay(50); // possibly not necessary but to be safe for debouncing...
+		keypad.getKeys();
+		
+		return ( 	(keypad.countPressed() == 2) && 
+					(keypad.findInList((char)KEYSCAN_1) != -1) && 
+					(keypad.findInList((char)KEYSCAN_4) != -1) 
+				);
 	}
 
-	/* =========================================================== */
-	// this function blocks loop() until PowerOff-PowerOn Reset!!
-	void runParentAdminMode(){
-
-		delay(500); // wait a short time for AMP and so on to settle if messages is all we play...
-		
-		if ( keypad.isPressed(KEYSCAN_1) ) {
-			parentAdminModeReadVcc();
-		}
-
-
-		while (1); // block device until PowerOff-PowerOn Reset!!
-		
-	} // runParentAdminMode()
-
-	
-
-	/* =========================================================== */
+		/* =========================================================== */
 	void parentAdminModeReadVcc(){
 		batteryVoltageAsMessageToParents();
 	}
+
+	/* =========================================================== */
+	// this function blocks until PowerOff-PowerOn Reset!!
+	void parentAdminModeLoop(){
+
+		char c;
+
+		// wait for all keys to be released;
+		while (keypad.countPressed() > 0) {
+			keypad.getKeys();
+		}
+	
+		while (1){
+
+			c = keypad.waitForKey();
+		
+			if ( c == KEYSCAN_1 ) {
+				parentAdminModeReadVcc();
+			}
+
+			// wait for all keys to be released;
+			while (keypad.countPressed() > 0) {
+				keypad.getKeys(); // do nothing but waiting...
+			}
+			
+		}
+		
+	} // parentAdminModeLoop()

@@ -212,8 +212,15 @@
     Keypad keypad = Keypad( makeKeymap(KEYB_keyScans), KEYB_RowPins, KEYB_ColPins, KEYB_ROWS, KEYB_COLS );
 
     bool keyb_setup();
+    void keypad_callback_onEvent_normalMode( char key);
+    void keypad_callback_onEvent_parentAdminMode( char key );
+
+    void keyb_addEventListenerNormalMode();
+    void keyb_addEventListenerParentAdminMode();
 
     extern char keyb_current_playListKey;
+
+    
 
 
 // ####################################################################################
@@ -235,5 +242,21 @@
 	void playMessage(const byte* theMessage, const byte theMessageLength);
 	void playMessage(const byte* theMessage, const byte theMessageLength, const bool fromProgMem);
 
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+// ####################################################################################
+/* 
+ * Abschnitt ParentAdminMode
+ */
+
+	void parentAdminModeLoop();
+	bool checkForParentAdminModeAtDeviceStartup();
+	void parentAdminModeReadVcc();
 
 // EOF

@@ -58,30 +58,14 @@
         if (isFirstLoop) {
             isFirstLoop = false;
 
-			// at first, startup device in parent admin mode or in normal playback mode
-			if ( checkForParentAdminModeAtDeviceStartup() ) {
-				// parent admin mode!
-				
-				// we only call a simple function here that holds all of the parentAdminMode
-				// this keeps the loop() simple...
-				// this function is blocking loop() until ended!
-				runParentAdminMode();
-				
-				
-			} else {
-				// normal playback mode
-				
-				// automatically, the greeting message is played at startup
-	    		playMessage(message_greeting, sizeof(message_greeting));
-	
-				
-				#if defined (AUTO_PLAY)
-		    		// now look for last saved track/playlist and play that            
-		            play_last_playlist_and_track_from_eeprom();
-			    #endif
-			}
+			// automatically, the greeting message is played at startup
+    		playMessage(message_greeting, sizeof(message_greeting));
 
 			
+			#if defined (AUTO_PLAY)
+	    		// now look for last saved track/playlist and play that            
+	            play_last_playlist_and_track_from_eeprom();
+		    #endif
         }
 	
 	
