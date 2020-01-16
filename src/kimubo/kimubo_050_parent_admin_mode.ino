@@ -22,6 +22,20 @@
  * 
  */
 
+	// global variable to hold the parent settings from/to EEPROM
+	// bit 0 == 	loudness == 		( gv_parentAdminModeSettings >> 0) & 1 )
+	// bit 1 == 	greeting == 		( gv_parentAdminModeSettings >> 1) & 1 )
+	// bit 2 == 	autoplay == 		( gv_parentAdminModeSettings >> 2) & 1 )
+	byte gv_parentAdminModeSettings;
+
+
+	/* =========================================================== */
+	bool setupParentAdminSettingsFromEEPROM(){
+		
+		// STEP 0: Read AdminSettings from EEPROM 
+		EEPROM.get(EEPROM_PARENTADMINMODE_SETTINGS_ADDR, gv_parentAdminModeSettings); // this is one byte
+	}
+	
   	/* =========================================================== */
 	bool checkForParentAdminModeAtDeviceStartup(){
 		// we enter parent admin mode by having two keys pressed at startup --> getkey*S*()
@@ -34,7 +48,7 @@
 				);
 	}
 
-		/* =========================================================== */
+	/* =========================================================== */
 	void parentAdminModeReadVcc(){
 		batteryVoltageAsMessageToParents();
 	}
@@ -48,7 +62,7 @@
 		 * 
 		 * a) press key1 (upper left) --> device tells the current battery voltage to user
 		 * 
-		 * b) TBD LATER! 
+		 * b)
 		 *    press key 2 (upper middle) repeatedly --> toggle loudness:
 		 * 		first press: device tells the current loudness setting to user
 		 * 		each following press: loudness toggles and device tells new setting
@@ -62,7 +76,7 @@
 		 * 		
 		 * 		sleepTimer has the following states: OFF, 15min, 30min
 		 * 		
-		 * d) TBD LATER! 
+		 * d)
 		 *    press key 4 (middle left) repeatedly --> toggle Greeting:
 		 * 		first press: device tells the current Greeting setting to user
 		 * 		each following press: Greeting toggles and device tells new setting
@@ -70,8 +84,9 @@
 		 * 		Greeting has the following states: OFF, ON-FIXED, ON-RANDOM
 		 * 		where 	ON-FIXED will always play file 254.WAV and 
 		 * 				ON-RANDOM plays (randomly) one of 245.WAV .. 254.WAV
+		 * 		ON-RANDOM will be implemented later!
 		 * 		
-		 * e) TBD LATER! 
+		 * e)
 		 *    press key 5 (middle middle) repeatedly --> toggle Autoplay:
 		 * 		first press: device tells the current Autoplay setting to user
 		 * 		each following press: Autoplay toggles and device tells new setting
@@ -94,19 +109,40 @@
 		
 			if ( c == KEYSCAN_1 ) {
 				parentAdminModeReadVcc();
-				keyb_waitForAllKeysToBeReleased();
+				
+			} else if ( c == KEYSCAN_2 ) {
+				
+				// toggle loudness
+				if ( readParentAdminSettingLoudness() ) {
+					clrParentAdminSettingLoudness();
+					playMessage(message_loudness_off, sizeof(message_loudness_off));
+				} else {
+					setParentAdminSettingLoudness();
+					playMessage(message_loudness_on, sizeof(message_loudness_on));
+				}
+			} else if ( c == KEYSCAN_4 ) {
+				
+				// toggle greeting
+				if ( readParentAdminSettingGreeting() ) {
+					clrParentAdminSettingGreeting();
+					playMessage(message_greeting_off, sizeof(message_greeting_off));
+				} else {
+					setParentAdminSettingGreeting();
+					playMessage(message_greeting_on, sizeof(message_greeting_on));
+				}
+			} else if ( c == KEYSCAN_5 ) {
+				
+				// toggle greeting
+				if ( readParentAdminSettingAutoplay() ) {
+					clrParentAdminSettingAutoplay();
+					playMessage(message_autoplay_off, sizeof(message_autoplay_off));
+				} else {
+					setParentAdminSettingAutoplay();
+					playMessage(message_autoplay_on, sizeof(message_autoplay_on));
+				}
 			}
 
-			if ( c == KEYSCAN_2 ) {
-				parentAdminModeReadVcc();
-				keyb_waitForAllKeysToBeReleased();
-			}
-
-			
-
-			
-
-			
+			keyb_waitForAllKeysToBeReleased();
 			
 		}
 		

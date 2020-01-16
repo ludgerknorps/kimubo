@@ -65,9 +65,9 @@
 		#define writePinD0_D21(pinNo, boolValue) 	( (boolValue && setPinD0_D21(pinNo))  || clrPinD0_D21(pinNo) )
 		
 		// sometimes reading is better than writing...
-		#define readPinD0_D7(pinNo) 	( PORTD >> pinNo) & 1 )
-		#define readPinD8_D13(pinNo) 	( PORTB >> (pinNo-8) & 1 )
-		#define readPinA0_A7(pinNo) 	( PORTC >> pinNo) & 1 )
+		#define readPinD0_D7(pinNo) 	(( PORTD >> pinNo) & 1 )
+		#define readPinD8_D13(pinNo) 	(( PORTB >> (pinNo-8) & 1 )
+		#define readPinA0_A7(pinNo) 	(( PORTC >> pinNo) & 1 )
 
 
 
@@ -118,8 +118,9 @@
 		volatile byte player_track_number_max[9]; // one array field per playlist (we dont need that for "systemmessages").
 		
 		// loudness is set via softwarevolume controll of lkpcm lib
-		volatile bool player_is_loudness;
-		void toggleLoudness();  
+		//volatile bool player_is_loudness;
+		void setLoudness(); 
+		void unsetLoudness();  
 		
 			// Helper function: make filename from current_track_number
 		void get_new_track_player_filename();
@@ -218,7 +219,7 @@
     void keyb_addEventListenerNormalMode();
     void keyb_addEventListenerParentAdminMode();
 
-    void keyb_waitForAllKeysToBeReleased()
+    void keyb_waitForAllKeysToBeReleased();
 
     extern char keyb_current_playListKey;
 
@@ -257,8 +258,20 @@
  * Abschnitt ParentAdminMode
  */
 
+	extern byte gv_parentAdminModeSettings;
+
 	void parentAdminModeLoop();
 	bool checkForParentAdminModeAtDeviceStartup();
 	void parentAdminModeReadVcc();
+
+	#define setParentAdminSettingLoudness() 		( gv_parentAdminModeSettings |= (1<<(0)) )
+	#define setParentAdminSettingGreeting()			( gv_parentAdminModeSettings |= (1<<(1)) )
+	#define setParentAdminSettingAutoplay() 		( gv_parentAdminModeSettings |= (1<<(2)) )
+	#define clrParentAdminSettingLoudness() 		( gv_parentAdminModeSettings &= ~(1<<(0)) )
+	#define clrParentAdminSettingGreeting() 		( gv_parentAdminModeSettings &= ~(1<<(1)) )
+	#define clrParentAdminSettingAutoplay() 		( gv_parentAdminModeSettings &= ~(1<<(2)) )
+	#define readParentAdminSettingLoudness() 		(( gv_parentAdminModeSettings >> 0) & 1 )
+	#define readParentAdminSettingGreeting() 		(( gv_parentAdminModeSettings >> 1) & 1 )
+	#define readParentAdminSettingAutoplay() 		(( gv_parentAdminModeSettings >> 2) & 1 )
 
 // EOF

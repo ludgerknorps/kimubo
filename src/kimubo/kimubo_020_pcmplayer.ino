@@ -27,8 +27,16 @@ bool player_setup(){
 
     player.setupPlayer(AUDIO_PIN_OUT_HIGH, AUDIO_PIN_OUT_LOW);
 
-    pinMode(AUDIO_PIN_LOUDNESS,INPUT_PULLUP);
-    player_is_loudness = true; // default as lkpcm player also starts with volume = 0 (which is loudness), the non-loudness volume would be -3
+	// not necessary with change to loudness setting via parent admin mode!
+    //pinMode(AUDIO_PIN_LOUDNESS,INPUT_PULLUP);
+    //player_is_loudness = true; // default as lkpcm player also starts with volume = 0 (which is loudness), the non-loudness volume would be -3
+
+	if ( readParentAdminSettingLoudness() ) {
+		setLoudness();
+	} else {
+		unsetLoudness();
+	}
+    
     #if defined (debug)
         Serial.print(F("kimubo INFO software volume is "));
         Serial.println(byte(lkpcm_volume));   
@@ -260,21 +268,13 @@ bool player_setup(){
 
 
 /* =========================================================== */
-    void toggleLoudness(){
+    void setLoudness(){
 
         // loundness toggles between normal volume and reduced volume.
         // volume is thereby set via player.volume() function
-        if ( lkpcm_volume == 0 ) {
-            // it was loudness and now shall not be
-            player_is_loudness = false;
-            player.setVolume(2); // => lkpcm_volume = 2-4 = -2
-            #if defined (debug)
-                Serial.print(F("kimubo INFO loudness off "));
-                Serial.println(byte(lkpcm_volume));   
-            #endif
-        } else {
+        if ( lkpcm_volume != 0 ) {
             // it was not loudness and now shall be
-            player_is_loudness = true;
+            //player_is_loudness = true;
             player.setVolume(4); // => lkpcm_volume = 4-4 = 0
             #if defined (debug)
                 Serial.print(F("kimubo INFO loudness on "));
@@ -282,7 +282,22 @@ bool player_setup(){
             #endif
         }
         
-    } // toggleLoudness()
+    } // setLoudness()
+
+/* =========================================================== */
+    void unsetLoudness(){
+
+        if ( lkpcm_volume == 0 ) {
+            // it was loudness and now shall not be
+            //player_is_loudness = false;
+            player.setVolume(2); // => lkpcm_volume = 2-4 = -2
+            #if defined (debug)
+                Serial.print(F("kimubo INFO loudness off "));
+                Serial.println(byte(lkpcm_volume));   
+            #endif
+        } 
+        
+    } // unsetLoudness()
 
 
 /* =========================================================== */

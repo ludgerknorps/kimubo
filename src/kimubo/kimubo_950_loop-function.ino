@@ -43,10 +43,11 @@
 		// check if something is happening on the keypad (e.g. key pressed released)
 		keypad.getKey(); // we only need to check for one key as we do not use multikey 
 
-	    // check loudness switch
-	    if ( player_is_loudness != digitalRead(AUDIO_PIN_LOUDNESS ) ) {
-	        toggleLoudness();
-	    }
+// not necessary to check in loop() with change to loudness setting via parent admin mode!
+//	    // check loudness switch
+//	    if ( player_is_loudness != digitalRead(AUDIO_PIN_LOUDNESS ) ) {
+//	        toggleLoudness();
+//	    }
 	
 	    // if playing a playlist and we finished a track, continue with next track, iff there is one
 	    if ( lkpcm_isFinishedPlayingFile ) {
@@ -58,14 +59,16 @@
         if (isFirstLoop) {
             isFirstLoop = false;
 
-			// automatically, the greeting message is played at startup
-    		playMessage(message_greeting, sizeof(message_greeting));
+			if ( readParentAdminSettingGreeting() ){
+				// automatically, the greeting message is played at startup
+				playMessage(message_greeting, sizeof(message_greeting));
+			}
+    		
 
-			
-			#if defined (AUTO_PLAY)
+			if ( readParentAdminSettingAutoplay() ){
 	    		// now look for last saved track/playlist and play that            
 	            play_last_playlist_and_track_from_eeprom();
-		    #endif
+			}
         }
 	
 	

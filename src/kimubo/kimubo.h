@@ -90,6 +90,14 @@
    		const byte message_readAll[] PROGMEM = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
    		const byte message_greeting[] PROGMEM = { 254 };
 
+   		
+   		const byte message_loudness_off[] PROGMEM = { 20 };
+   		const byte message_loudness_on[] PROGMEM = { 21 };
+   		const byte message_greeting_off[] PROGMEM = { 22 };
+   		const byte message_greeting_on[] PROGMEM = { 23 };
+   		const byte message_autoplay_off[] PROGMEM = { 24 };
+   		const byte message_autoplay_on[] PROGMEM = { 25 };
+
 
 	// ####################################################################################
 	// ####################################################################################
@@ -134,10 +142,6 @@
 		//~ //                        i.e. we can return to pause on e.g. keypress BUT NOT by just turning
 		//~ //                        the volume up again, thus do not choose a too small value here!
 		//~ #define POWERSAVE_AFTER_PAUSE (60*POWERSAVE_AFTER)
-		
-		
-		// on startup autoplay the last playlists and track as memorized in EEPROM 
-			#define AUTO_PLAY
 
 
 
@@ -255,8 +259,10 @@
                                   // approx. 100000/10/365 ~= 27 years of use with ten uses per day each day of the year...
 		
 		static const byte EEPROM_VCCCOMPENSATION_ADDR	=	EEPROM_BASE_ADDR + 0; // four bytes used
+
+		static const byte EEPROM_PARENTADMINMODE_SETTINGS_ADDR	= EEPROM_VCCCOMPENSATION_ADDR + 4	; // one byte used
 		
-		static const byte EEPROM_LAST_PLAYLIST_ADDR		=	EEPROM_BASE_ADDR + 4	; // one byte used
+		static const byte EEPROM_LAST_PLAYLIST_ADDR		=	EEPROM_PARENTADMINMODE_SETTINGS_ADDR + 1	; // one byte used
 		
 		// tbd later! 
 		static const byte EEPROM_LAST_TRACK_IN_PLAYLIST[9] = {	EEPROM_LAST_PLAYLIST_ADDR + 1,

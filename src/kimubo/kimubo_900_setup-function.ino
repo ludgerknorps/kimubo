@@ -55,7 +55,8 @@ void setup() {
     setupReadVcc();
     // only continue if voltage is above absolute lower limit
     checkBatteryVoltageAndShutdownIfNeccessary();
-    
+
+    setupParentAdminSettingsFromEEPROM();
     
     amp_setup();
     sdc_setup();
@@ -63,13 +64,7 @@ void setup() {
     player_setup();
    	
 
-
-    
-
-    
-    #if defined (AUTO_PLAY)
-        isFirstLoop = true; // in case of AUTO_PLAY we need to know when we loop for the first time
-    #endif
+    isFirstLoop = true; // in case of AUTO_PLAY we need to know when we loop for the first time
 
     playerStoppedSince = 0L; // initial value
 
