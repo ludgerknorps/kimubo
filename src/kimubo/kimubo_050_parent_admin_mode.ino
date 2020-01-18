@@ -34,6 +34,12 @@
 		
 		// STEP 0: Read AdminSettings from EEPROM 
 		EEPROM.get(EEPROM_PARENTADMINMODE_SETTINGS_ADDR, gv_parentAdminModeSettings); // this is one byte
+
+		#if defined (debug)
+            Serial.print(F("kimubo INFO PAM byte "));
+            Serial.println(byte(gv_parentAdminModeSettings));   
+        #endif
+		
 	}
 	
   	/* =========================================================== */
@@ -64,8 +70,7 @@
 		 * 
 		 * b)
 		 *    press key 2 (upper middle) repeatedly --> toggle loudness:
-		 * 		first press: device tells the current loudness setting to user
-		 * 		each following press: loudness toggles and device tells new setting
+		 * 		each press: loudness toggles and device tells new setting
 		 * 		
 		 * 		loudness has the following states: OFF, ON
 		 * 		
@@ -78,8 +83,7 @@
 		 * 		
 		 * d)
 		 *    press key 4 (middle left) repeatedly --> toggle Greeting:
-		 * 		first press: device tells the current Greeting setting to user
-		 * 		each following press: Greeting toggles and device tells new setting
+		 * 		each press: Greeting toggles and device tells new setting
 		 * 		
 		 * 		Greeting has the following states: OFF, ON-FIXED, ON-RANDOM
 		 * 		where 	ON-FIXED will always play file 254.WAV and 
@@ -88,8 +92,7 @@
 		 * 		
 		 * e)
 		 *    press key 5 (middle middle) repeatedly --> toggle Autoplay:
-		 * 		first press: device tells the current Autoplay setting to user
-		 * 		each following press: Autoplay toggles and device tells new setting
+		 * 		each press: Autoplay toggles and device tells new setting
 		 * 		
 		 * 		Autoplay has the following states: OFF, ON
 		 * 		
@@ -108,6 +111,10 @@
 			c = keypad.waitForKey();
 		
 			if ( c == KEYSCAN_1 ) {
+
+				#if defined (debug)
+		            Serial.println(F("kimubo INFO PAM 1 ")); 
+		        #endif
 				parentAdminModeReadVcc();
 				
 			} else if ( c == KEYSCAN_2 ) {
@@ -115,11 +122,21 @@
 				// toggle loudness
 				if ( readParentAdminSettingLoudness() ) {
 					clrParentAdminSettingLoudness();
+					unsetLoudness();
 					playMessage(message_loudness_off, sizeof(message_loudness_off));
 				} else {
 					setParentAdminSettingLoudness();
+					setLoudness();
 					playMessage(message_loudness_on, sizeof(message_loudness_on));
 				}
+				#if defined (debug)
+		            Serial.println(F("kimubo INFO PAM 2 ")); 
+		            Serial.print(F("kimubo INFO PAM byte "));
+		            Serial.println(byte(gv_parentAdminModeSettings));   
+		        #endif
+		        // write to eeprom
+				EEPROM.put(EEPROM_PARENTADMINMODE_SETTINGS_ADDR, gv_parentAdminModeSettings);
+			
 			} else if ( c == KEYSCAN_4 ) {
 				
 				// toggle greeting
@@ -130,8 +147,16 @@
 					setParentAdminSettingGreeting();
 					playMessage(message_greeting_on, sizeof(message_greeting_on));
 				}
+				#if defined (debug)
+		            Serial.println(F("kimubo INFO PAM 4 ")); 
+		            Serial.print(F("kimubo INFO PAM byte "));
+		            Serial.println(byte(gv_parentAdminModeSettings));  
+		        #endif
+				// write to eeprom
+				EEPROM.put(EEPROM_PARENTADMINMODE_SETTINGS_ADDR, gv_parentAdminModeSettings);
+			
 			} else if ( c == KEYSCAN_5 ) {
-				
+
 				// toggle greeting
 				if ( readParentAdminSettingAutoplay() ) {
 					clrParentAdminSettingAutoplay();
@@ -140,6 +165,13 @@
 					setParentAdminSettingAutoplay();
 					playMessage(message_autoplay_on, sizeof(message_autoplay_on));
 				}
+				#if defined (debug)
+		            Serial.println(F("kimubo INFO PAM 5 ")); 
+		            Serial.print(F("kimubo INFO PAM byte "));
+		            Serial.println(byte(gv_parentAdminModeSettings));  
+		        #endif
+		        // write to eeprom
+				EEPROM.put(EEPROM_PARENTADMINMODE_SETTINGS_ADDR, gv_parentAdminModeSettings);
 			}
 
 			keyb_waitForAllKeysToBeReleased();
