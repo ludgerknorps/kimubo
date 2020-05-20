@@ -1,9 +1,6 @@
 #!/bin/bash
 
-#
-# Wrapper für das eigentliche Skript in kontoauszugparser.scriptda
-# Notwendig, damit in xwindows reproduzierbar ein Terminalfenster aufgehnt
-# 
+
 
 defDEBUG=0 		# 1 --> show debug level in console
 				# 0 --> no show debug level
@@ -21,6 +18,42 @@ function print_debug {
   [ $defDEBUG -eq 1 ] && echo "$1" | tee -a "$debugFile"
 }
 
+#########################
+# Greeting 				#
+#########################
+
+greeting(){
+    echo "KIMUBO"
+    echo "KInderMUsikBOx"
+    echo " "
+    echo "	Ein minimalistischer WAV/PCM Spieler für Kinder - und mehr."
+    echo "	(c) 2019 ludgerknorps <56650955+ludgerknorps@users.noreply.github.com>"
+    echo " "
+    echo "This Bash script creates \"Kimubo-ready\" files either by ripping from a CD or by converting existing WAV/OGG files into Kimubo format."
+    echo " "	
+}
+
+#########################
+# The command line help #
+#########################
+display_help() {
+
+    echo "Options:"
+	echo "	-w <path_of_working_dir>	where ogg and wav files are stored to"
+	echo "	-d <path_of_cdrom_device>	which cdro to use for ripping"
+	echo "	-m 				if set: multidisk, i.e. more than one disk are to be ripped into one workingdir"
+	echo "	-n 				if set: no rip, just convert existing files"
+	echo "						these files must be RIP1.wav, RIP2.wav, ... or RIP1.ogg, RIP2.ogg, ..."
+	echo "	-o <number>			offset for tracks from this cd, needs to be provided if \"-m\" option is given; must only be given together with \"-m\" option"
+	echo "	-a				\"automatic\" mode: if no NNN.WAV files exist in working dir, then assume it is first disk and thus behave like without -m option (implying -o 0)"
+	echo "						but if NNN.WAV files exist in working dir, then assume it is a follow up disk and thus behave like with -m -o NNN"
+	echo "	"
+	echo "	Examples:"
+	echo "		cd2kimubo.sh -w /home/ludger/music/toKimubo -d /dev/sr1 -m -o 12 "
+	echo "		Rip disk in /dev/sr1, do cddb lookup for ARTIST and ALBUM, put files into /home/ludger/music/toKimubo/ARTIST_ALBUM/ and start naming files there with 12.ogg"
+	echo "	"
+}
+
 
 # Variables (and is applicable their defaults)
 
@@ -31,19 +64,10 @@ vTrackOffsetNr="null"
 vNoRip="0"
 vIsAutoMode="0"
 
-# Options:
-# -w <path_of_working_dir>			where ogg and wav files are stored to
-# -d <path_of_cdrom_device>			which cdro to use for ripping
-# -m 								if set: multidisk, i.e. more than one disk are to be ripped into one workingdir
-# -n 								if set: no rip, just convert existing files
-# -o <number>						offset for tracks from this cd, needs to be provided if "-m" option is given; must only be given together with "-m" option
-# -a								"automatic" mode: if no NNN.WAV files exist in working dir, then assume it is first disk and thus behave like without -m option (implying -o 0)
-#										but if NNN.WAV files exist in working dir, then assume it is a follow up disk and thus behave like with -m -o NNN
-#
-# Examples:
-# cd2kimubo.sh -w /home/ludger/music/toKimubo -d /dev/sr1 -m -o 12 
-# 		Rip disk in /dev/sr1, do cddb lookup for ARTIST and ALBUM, put files into /home/ludger/music/toKimubo/ARTIST_ALBUM/ and start naming files there with 12.ogg
 
+
+# print greeting
+greeting
 
 # check parameters and options given in command line, only continue if successful and sensible
 while getopts d:w:mno:a opt
@@ -68,30 +92,36 @@ done
 # sanity checks
 	if [[ "$vWorkingDir" == null ]]
 	then
+		echo -e $vHelpText
+		display_help
 		echo "ERROR: -w option and parameter are mandatory (e.g.   -w /this_dir   )   ... exiting..."
 		exit 1
 	fi
 
 	if [[ "$vCDDevice" == null ]]
 	then
+		echo -e $vHelpText
 		echo "INFO: -d option not given, therefore using /dev/cdrom"
 		vCDDevice="/dev/cdrom"
 	fi
 
 	if [[ "$vIsMultiDisk" == yes ]] && [[ "$vTrackOffsetNr" == null ]]
 	then
+		echo -e $vHelpText
 		echo "ERROR: -m option requires -o option and parameter (e.g.   -m -o 12   )   ... exiting..."
 		exit 1
 	fi
 	
 	if [[ "$vIsMultiDisk" == 0 ]] && [[ "$vTrackOffsetNr" != null ]]
 	then
+		echo -e $vHelpText
 		echo "ERROR: -o option must only be given together with -m option   ... exiting..."
 		exit 1
 	fi
 	
 	if [[ "$vIsAutoMode" == yes ]] && [[ "$vIsMultiDisk" == yes ]]
 	then
+		echo -e $vHelpText
 		echo "ERROR: -a option forbids -m and -o options   ... exiting..."
 		exit 1
 	fi
@@ -102,6 +132,7 @@ done
 	# returns 0 on error (all path-parts except last need to exist!)
 	if [[ -z "$vWorkingDirAbsolute" ]]
 	then
+		echo -e $vHelpText
 		echo "ERROR: working dir (provided with -w option) $vWorkingDirAbsolute is not correct (all path-parts except last need to exist!)   ... exiting..."
 		exit 1
 	fi
