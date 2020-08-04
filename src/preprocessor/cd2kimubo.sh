@@ -47,6 +47,12 @@ display_help() {
 	echo "	-o <number>			offset for tracks from this cd, needs to be provided if \"-m\" option is given; must only be given together with \"-m\" option"
 	echo "	-a				\"automatic\" mode: if no NNN.WAV files exist in working dir, then assume it is first disk and thus behave like without -m option (implying -o 0)"
 	echo "						but if NNN.WAV files exist in working dir, then assume it is a follow up disk and thus behave like with -m -o NNN"
+	echo "  -c              no CDDB lookup for rip"
+	echo "  NOT YET -r <number>     renumber existing files; this is used, if you rip several disks and each rip results in 1.wav .. n.wav; from the second disk on you"
+	echo "                      use -r n+1 and all new files (1.wav .. n.wav) will be renamed to RIPn+1.wav .."
+	echo "                      inplies -n"
+	echo "  NOT YET -b              add \"RIP\" to all existing 1.wav .. n.wav (actually this uses \"-r 0\" internally and thus inplies -n)"
+	echo "						if -b and -r N are given together, then -r N has higher priority"
 	echo "	"
 	echo "	Examples:"
 	echo "		cd2kimubo.sh -w /home/ludger/music/toKimubo -d /dev/sr1 -m -o 12 "
@@ -63,6 +69,7 @@ vIsMultiDisk="0"
 vTrackOffsetNr="null"
 vNoRip="0"
 vIsAutoMode="0"
+vIsRenumber="null"
 
 
 
@@ -70,7 +77,7 @@ vIsAutoMode="0"
 greeting
 
 # check parameters and options given in command line, only continue if successful and sensible
-while getopts d:w:mno:a opt
+while getopts d:w:mno:ar:bc opt
 do
    case $opt in
 		w) 	vWorkingDir="$OPTARG"
@@ -85,6 +92,16 @@ do
 			;;
 		a)	vIsAutoMode="yes"
 			;;
+		b)	vIsRenumber="0"
+			vNoRip="yes"
+			# uses "-r 0" internally, thus b option goes to vIsRenumber
+			;;
+		r)	vIsRenumber="$OPTARG"
+			vNoRip="yes"
+			;;
+		c)  vCDDBOption="--nocddb"
+			;;
+		
 	
    esac
 done
@@ -123,6 +140,13 @@ done
 	then
 		echo -e $vHelpText
 		echo "ERROR: -a option forbids -m and -o options   ... exiting..."
+		exit 1
+	fi
+	
+	if [[ "$vIsRenumber" != null ]] && [[ "$vIsAutoMode" == yes ]]
+	then
+		echo -e $vHelpText
+		echo "ERROR: -r and -b options forbids -a option   ... exiting..."
 		exit 1
 	fi
 
@@ -169,7 +193,7 @@ done
 # rip cd to high quality wav filesnames are RIP1.wav .. RIPNNN.wav
 	if [[ "$vNoRip" != yes ]] 
 	then
-		pacpl --rip all --to wav --overwrite --nscheme="RIP%tr" -v --noinput --outdir "$vWorkingDirAbsolute" --device "$vCDDevice"
+		pacpl --rip all --nocddb --to wav --overwrite --nscheme="RIP%tr" -v --noinput --outdir "$vWorkingDirAbsolute" --device "$vCDDevice" 
 	else
 		echo "INFO: skipping rip (as -n option is provided!)"
 	fi 
@@ -198,6 +222,18 @@ done
 		fi
 		echo "INFO: ... using file-number-offset of $vTrackOffsetNr"
 	fi	
+	
+## if rename mode
+	#if [[ "$vIsRenumber" != null ]] 
+	#then
+		#echo "INFO: renumber mode enabled..."
+		
+		#vTrackOffsetNr="$vIsRenumber"
+
+		#echo "INFO: ... using file-number-offset of $vTrackOffsetNr"
+	#fi	
+	
+	#for theRippedFile in RIP*.wav
 	
 # make oggs from high quality wavs
 	for theRippedFile in *.wav
